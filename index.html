@@ -1,0 +1,806 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Cruise Hub Commission Calculator</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20x%3D%222%22%20y%3D%222%22%20width%3D%2260%22%20height%3D%2260%22%20rx%3D%2216%22%20fill%3D%22%23cfe3f8%22/%3E%3Crect%20x%3D%2214%22%20y%3D%2210%22%20width%3D%2228%22%20height%3D%2242%22%20rx%3D%226%22%20fill%3D%22%234a8fd4%22/%3E%3Crect%20x%3D%2219%22%20y%3D%2215%22%20width%3D%2218%22%20height%3D%228%22%20rx%3D%222%22%20fill%3D%22%23eaf3fc%22/%3E%3Cg%20fill%3D%22%23eaf3fc%22%3E%3Crect%20x%3D%2219%22%20y%3D%2227%22%20width%3D%225%22%20height%3D%225%22%20rx%3D%221.5%22/%3E%3Crect%20x%3D%2226%22%20y%3D%2227%22%20width%3D%225%22%20height%3D%225%22%20rx%3D%221.5%22/%3E%3Crect%20x%3D%2219%22%20y%3D%2234%22%20width%3D%225%22%20height%3D%225%22%20rx%3D%221.5%22/%3E%3Crect%20x%3D%2226%22%20y%3D%2234%22%20width%3D%225%22%20height%3D%225%22%20rx%3D%221.5%22/%3E%3Crect%20x%3D%2219%22%20y%3D%2241%22%20width%3D%225%22%20height%3D%225%22%20rx%3D%221.5%22/%3E%3Crect%20x%3D%2226%22%20y%3D%2241%22%20width%3D%225%22%20height%3D%225%22%20rx%3D%221.5%22/%3E%3C/g%3E%3Crect%20x%3D%2233%22%20y%3D%2227%22%20width%3D%224%22%20height%3D%2219%22%20rx%3D%221.5%22%20fill%3D%22%239cc6ef%22/%3E%3Ccircle%20cx%3D%2245%22%20cy%3D%2244%22%20r%3D%2212%22%20fill%3D%22%23f6c96b%22%20stroke%3D%22%23ffffff%22%20stroke-width%3D%223%22/%3E%3Cg%20stroke%3D%22%231d3557%22%20stroke-width%3D%222.2%22%20stroke-linecap%3D%22round%22%3E%3Cline%20x1%3D%2240.5%22%20y1%3D%2248.5%22%20x2%3D%2249.5%22%20y2%3D%2239.5%22/%3E%3C/g%3E%3Ccircle%20cx%3D%2241.5%22%20cy%3D%2240.5%22%20r%3D%222%22%20fill%3D%22%231d3557%22/%3E%3Ccircle%20cx%3D%2248.5%22%20cy%3D%2247.5%22%20r%3D%222%22%20fill%3D%22%231d3557%22/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>*{box-sizing:border-box}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<style>
+/* Layout: one working column. Month bar on top, tabs below, each tab a single operating surface. */
+:root{
+  --bg:#eaf3fc; --panel:#ffffff; --sunk:#f2f8fe; --ink:#1d3557; --muted:#5f7896; --line:#cfe0f2;
+  --sea:#4a8fd4; --sea-ink:#ffffff; --brass:#3d6fa8; --brass-soft:#deecfb;
+  --good:#2f8a5f; --good-soft:#e1f4ea; --warn:#a76a14; --warn-soft:#fdf1dd; --bad:#c0463f; --bad-soft:#fbe6e4;
+  --f-display:"Sora",ui-sans-serif,system-ui,sans-serif;
+  --f-body:"Figtree",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--f-body);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:1240px;margin:0 auto;display:grid;gap:18px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:-.01em}
+h1{font-size:1.45rem}
+h2{font-size:1.08rem}
+h3{font-size:.95rem}
+.muted{color:var(--muted)}
+.small{font-size:.84rem}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.eyebrow{font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:600}
+header.top{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:flex-end;justify-content:space-between}
+.brandline{display:grid;gap:2px}
+.brand{display:flex;gap:12px;align-items:center}
+.brand img{width:48px;height:48px;flex:none}
+.monthbar{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+.field{display:grid;gap:4px}
+.field label{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+input,select,button{font:inherit;color:inherit}
+input[type=text],input[type=number],input[type=date],select{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:7px 9px;min-width:0}
+input[type=number]{font-family:var(--f-mono)}
+input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--sea);outline-offset:2px}
+button{cursor:pointer;border-radius:6px;border:1px solid var(--line);background:var(--panel);padding:7px 12px;font-weight:600}
+button.primary{background:var(--sea);border-color:var(--sea);color:var(--sea-ink)}
+button.ghost{background:transparent}
+button.danger{color:var(--bad)}
+button:disabled{opacity:.5;cursor:not-allowed}
+.status{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;font-weight:600;padding:3px 10px;border-radius:99px}
+.status.draft{background:var(--brass-soft);color:var(--brass)}
+.status.closed{background:var(--good-soft);color:var(--good)}
+nav.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto}
+nav.tabs button{border:none;background:none;border-bottom:3px solid transparent;border-radius:0;padding:10px 14px;color:var(--muted);white-space:nowrap}
+nav.tabs button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--sea)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;display:grid;gap:14px;min-width:0}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:grid;gap:4px}
+.kpi .v{font-family:var(--f-mono);font-size:1.35rem;font-weight:500;font-variant-numeric:tabular-nums}
+.kpi.lead{border-color:var(--sea);background:#dcebfb}
+.kpi.lead .v{color:var(--sea)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap;vertical-align:middle}
+th{font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);background:#e3effb;font-weight:600;position:sticky;top:0}
+td.r,th.r{text-align:right}
+tbody tr:last-child td{border-bottom:none}
+tr.clickable{cursor:pointer}
+tr.clickable:hover td{background:var(--sunk)}
+tr.total td{font-weight:600;background:var(--sunk);border-top:2px solid var(--line)}
+tr.detail td{background:var(--sunk);white-space:normal}
+.chip{display:inline-block;font-size:.72rem;font-weight:600;padding:2px 8px;border-radius:99px;margin-right:4px;white-space:nowrap}
+.chip.good{background:var(--good-soft);color:var(--good)}
+.chip.warn{background:var(--warn-soft);color:var(--warn)}
+.chip.bad{background:var(--bad-soft);color:var(--bad)}
+.chip.info{background:var(--brass-soft);color:var(--brass)}
+.chip.plain{background:var(--sunk);color:var(--muted)}
+.working{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px 28px;padding:6px 2px}
+.working dl{margin:0;display:grid;grid-template-columns:1fr auto;gap:3px 14px;font-size:.85rem}
+.working dt{color:var(--muted)}
+.working dd{margin:0;font-family:var(--f-mono);text-align:right}
+.working h4{margin:0 0 6px;font-family:var(--f-display);font-size:.82rem}
+.sources{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.src{border:1px solid var(--line);border-radius:8px;padding:12px 14px;display:grid;gap:8px;background:var(--panel)}
+.src.loaded{border-color:color-mix(in srgb,var(--good) 45%,var(--line))}
+.src .head{display:flex;justify-content:space-between;gap:8px;align-items:start}
+.src .used{font-size:.72rem;color:var(--muted)}
+.mapper{border:1px dashed var(--sea);border-radius:8px;padding:14px;display:grid;gap:10px;background:var(--sunk)}
+.maprow{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.notice{border-radius:8px;padding:12px 14px;font-size:.9rem;display:grid;gap:8px}
+.notice.warn{background:var(--warn-soft);color:var(--ink);border:1px solid color-mix(in srgb,var(--warn) 35%,transparent)}
+.notice.info{background:var(--sunk);border:1px solid var(--line)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.spread{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px}
+td input[type=text],td input[type=number],td input[type=date],td select{padding:5px 7px;width:100%}
+td input.w-num{width:96px}
+td input.w-name{min-width:150px}
+td input.w-alias{min-width:170px}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:8px;font-size:.88rem;z-index:20}
+.readonly-note{font-size:.84rem;color:var(--muted)}
+details summary{cursor:pointer;font-weight:600}
+details.panel:not([open]){gap:0}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+.demo-banner{border-color:#e8b04a!important;background:#fff6e0!important}
+</style>
+</head>
+<body><div class="wrap" id="app">
+  <header class="top">
+<div class="brand"><img alt="" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20x%3D%222%22%20y%3D%222%22%20width%3D%2260%22%20height%3D%2260%22%20rx%3D%2216%22%20fill%3D%22%23cfe3f8%22/%3E%3Crect%20x%3D%2214%22%20y%3D%2210%22%20width%3D%2228%22%20height%3D%2242%22%20rx%3D%226%22%20fill%3D%22%234a8fd4%22/%3E%3Crect%20x%3D%2219%22%20y%3D%2215%22%20width%3D%2218%22%20height%3D%228%22%20rx%3D%222%22%20fill%3D%22%23eaf3fc%22/%3E%3Cg%20fill%3D%22%23eaf3fc%22%3E%3Crect%20x%3D%2219%22%20y%3D%2227%22%20width%3D%225%22%20height%3D%225%22%20rx%3D%221.5%22/%3E%3Crect%20x%3D%2226%22%20y%3D%2227%22%20width%3D%225%22%20height%3D%225%22%20rx%3D%221.5%22/%3E%3Crect%20x%3D%2219%22%20y%3D%2234%22%20width%3D%225%22%20height%3D%225%22%20rx%3D%221.5%22/%3E%3Crect%20x%3D%2226%22%20y%3D%2234%22%20width%3D%225%22%20height%3D%225%22%20rx%3D%221.5%22/%3E%3Crect%20x%3D%2219%22%20y%3D%2241%22%20width%3D%225%22%20height%3D%225%22%20rx%3D%221.5%22/%3E%3Crect%20x%3D%2226%22%20y%3D%2241%22%20width%3D%225%22%20height%3D%225%22%20rx%3D%221.5%22/%3E%3C/g%3E%3Crect%20x%3D%2233%22%20y%3D%2227%22%20width%3D%224%22%20height%3D%2219%22%20rx%3D%221.5%22%20fill%3D%22%239cc6ef%22/%3E%3Ccircle%20cx%3D%2245%22%20cy%3D%2244%22%20r%3D%2212%22%20fill%3D%22%23f6c96b%22%20stroke%3D%22%23ffffff%22%20stroke-width%3D%223%22/%3E%3Cg%20stroke%3D%22%231d3557%22%20stroke-width%3D%222.2%22%20stroke-linecap%3D%22round%22%3E%3Cline%20x1%3D%2240.5%22%20y1%3D%2248.5%22%20x2%3D%2249.5%22%20y2%3D%2239.5%22/%3E%3C/g%3E%3Ccircle%20cx%3D%2241.5%22%20cy%3D%2240.5%22%20r%3D%222%22%20fill%3D%22%231d3557%22/%3E%3Ccircle%20cx%3D%2248.5%22%20cy%3D%2247.5%22%20r%3D%222%22%20fill%3D%22%231d3557%22/%3E%3C/svg%3E" width="48" height="48">    <div class="brandline">
+      <span class="eyebrow">Cruise Hub · Day One</span>
+      <h1>Commission Calculator</h1>
+    </div></div>
+    <div class="empty">Loading saved months and rates…</div>
+  </header>
+</div>
+<div class="toast" id="toast" hidden></div>
+<script type="application/json" id="demoData">{"app":"cruisehub-commission","version":1,"savedAt":"2026-10-21T12:05:41.439Z","docs":{"config/settings":{"bonus":{"insurance":150,"minStars":4,"reviewCM":250,"reviewHigher":500,"reviewService":500},"fp":{"conv":0.55,"csat":4.5,"groupCabins":8,"lead":0.8,"missingMet":true,"ms20":150,"ms25":250,"stage":"Closed Won Approved","tiers":[{"bs":3,"io":2,"min":1},{"bs":6,"io":4,"min":25},{"bs":11,"io":7,"min":40},{"bs":14,"io":10,"min":50},{"bs":16,"io":12,"min":60},{"bs":19,"io":15,"min":70}]},"pax":{"levels":[{"conv":0,"csat":null,"inb":null,"mult":1,"name":"Need Improvement","nps":null},{"conv":0.5,"csat":null,"inb":null,"mult":1.025,"name":"Limited","nps":null},{"conv":0.6,"csat":null,"inb":65,"mult":1.075,"name":"Participation Cap","nps":null},{"conv":0.7,"csat":4.6,"inb":65,"mult":1.125,"name":"Qualified","nps":0.7},{"conv":0.8,"csat":4.8,"inb":65,"mult":1.15,"name":"High Performer","nps":0.8}],"outboundPerCredit":10,"tiers":[{"min":50,"rate":2},{"min":60,"rate":4},{"min":80,"rate":5},{"min":100,"rate":6},{"min":120,"rate":7},{"min":140,"rate":8}]},"rate":52.32,"workingDays":22},"config/roster":{"people":[{"name":"Nadia Farouk","arabicName":"نادية فاروق","aliases":"Nadia","role":"Cruise Manager","plan":"fp","status":"active","stipend":4000,"higherRate":true,"startDate":"2025-03-01","method":"Instapay","depositsToDate":50,"ms20Paid":true,"ms25Paid":true},{"name":"Karim Mansour","arabicName":"كريم حسن","aliases":"Karim","role":"Cruise Manager","plan":"fp","status":"active","stipend":4000,"startDate":"2025-11-15","method":"Instapay","depositsToDate":12},{"name":"Salma Youssef","arabicName":"سلمى يوسف","aliases":"Salma","role":"Cruise Manager","plan":"fp","status":"active","stipend":2000,"startDate":"2026-09-01","method":"Bank transfer","depositsToDate":6},{"name":"Omar Shafik","arabicName":"عمر شفيق","aliases":"Omar","role":"Cruise Manager","plan":"fp","status":"active","stipend":4000,"startDate":"2025-06-01","method":"Instapay","depositsToDate":22,"ms20Paid":true},{"name":"Ethan Cole","aliases":"Ethan","role":"Sales Agent","plan":"pax","status":"active","stipend":4000,"startDate":"2024-08-01","method":"Instapay"},{"name":"Grace Holden","aliases":"Grace","role":"Sales Agent","plan":"pax","status":"active","stipend":4000,"startDate":"2025-01-10","method":"Instapay"},{"name":"Liam Carter","aliases":"Liam","role":"Sales Agent","plan":"pax","status":"active","stipend":2000,"startDate":"2025-04-01","method":"Bank transfer"},{"name":"Sophie Lane","aliases":"Sophie","role":"Sales Agent","plan":"pax","status":"active","stipend":4000,"startDate":"2025-02-01","method":"Instapay"},{"name":"Lucas Grant","aliases":"Lucas","role":"Sales Agent","plan":"pax","status":"active","stipend":2000,"startDate":"2025-09-01","method":"Instapay"},{"name":"Ava Sinclair","aliases":"Ava","role":"Sales Agent","plan":"pax","status":"left","lastDay":"2026-10-15","stipend":4000,"startDate":"2025-05-01","method":"Bank transfer"},{"name":"Hannah Ward","aliases":"Hannah","role":"Lead / Manager","plan":"none","status":"active","stipend":2000,"override":0,"method":"Bank transfer"},{"name":"Mona Adel","arabicName":"منى عادل","aliases":"Mona","role":"Service","plan":"none","status":"active","stipend":2000,"method":"Instapay"},{"name":"Tarek Samir","arabicName":"طارق سمير","aliases":"Tarek","role":"Back office","plan":"none","status":"active","stipend":2000,"method":"Instapay"}]},"months/2026-09":{"id":"2026-09","rate":52.32,"workingDays":22,"sources":{"paxdeal":{"file":"CruiseHub_exports_2026-09.xlsx","at":"2026-10-02T10:15:00.000Z","label":"PaxDeal","rows":[{"agent":"Ethan Cole","pax":138,"deals":60},{"agent":"Grace Holden","pax":84,"deals":41},{"agent":"Liam Carter","pax":57,"deals":27},{"agent":"Sophie Lane","pax":66,"deals":33},{"agent":"Lucas Grant","pax":29,"deals":12},{"agent":"Ava Sinclair","pax":71,"deals":30},{"agent":"Nadia","pax":0,"deals":50},{"agent":"Karim Mansour","pax":0,"deals":12},{"agent":"Salma Youssef","pax":0,"deals":6},{"agent":"Omar Shafik","pax":0,"deals":22}]},"inboundAll":{"file":"CruiseHub_exports_2026-09.xlsx","at":"2026-10-02T10:15:00.000Z","label":"Inbound all (incl. missed)","rows":[{"agent":"Ethan Cole","calls":76},{"agent":"Grace Holden","calls":60},{"agent":"Liam Carter","calls":54},{"agent":"Sophie Lane","calls":52},{"agent":"Lucas Grant","calls":40},{"agent":"Ava Sinclair","calls":48},{"agent":"Nadia Farouk","calls":82},{"agent":"Karim Mansour","calls":30},{"agent":"Salma Youssef","calls":15},{"agent":"Omar Shafik","calls":38}]},"inboundNoMissed":{"file":"CruiseHub_exports_2026-09.xlsx","at":"2026-10-02T10:15:00.000Z","label":"Inbound no missed","rows":[{"agent":"Ethan Cole","calls":70},{"agent":"Grace Holden","calls":55},{"agent":"Liam Carter","calls":50},{"agent":"Sophie Lane","calls":48},{"agent":"Lucas Grant","calls":36},{"agent":"Ava Sinclair","calls":45}]},"outbound":{"file":"CruiseHub_exports_2026-09.xlsx","at":"2026-10-02T10:15:00.000Z","label":"Outbound","rows":[{"agent":"Ethan Cole","calls":110},{"agent":"Grace Holden","calls":95},{"agent":"Liam Carter","calls":60},{"agent":"Sophie Lane","calls":170},{"agent":"Lucas Grant","calls":80},{"agent":"Ava Sinclair","calls":90}]},"csat":{"file":"CruiseHub_exports_2026-09.xlsx","at":"2026-10-02T10:15:00.000Z","label":"CSAT","rows":[{"agent":"Ethan Cole","score":4.82},{"agent":"Grace Holden","score":4.66},{"agent":"Liam Carter","score":4.4},{"agent":"Sophie Lane","score":4.55},{"agent":"Lucas Grant","score":4.3},{"agent":"Ava Sinclair","score":4.7},{"agent":"Nadia Farouk","score":4.78},{"agent":"Karim Mansour","score":4.6},{"agent":"Salma Youssef","score":4.5},{"agent":"Omar Shafik","score":4.6}]},"nps":{"file":"CruiseHub_exports_2026-09.xlsx","at":"2026-10-02T10:15:00.000Z","label":"NPS","rows":[{"agent":"Ethan Cole","score":0.84},{"agent":"Grace Holden","score":0.73},{"agent":"Liam Carter","score":0.6},{"agent":"Sophie Lane","score":0.66},{"agent":"Lucas Grant","score":0.5},{"agent":"Ava Sinclair","score":0.75}]},"leadScore":{"file":"CruiseHub_exports_2026-09.xlsx","at":"2026-10-02T10:15:00.000Z","label":"Lead Score","rows":[{"agent":"Nadia Farouk","score":0.9},{"agent":"Karim Mansour","score":0.82},{"agent":"Salma Youssef","score":0.8},{"agent":"Omar Shafik","score":0.85}]},"cancellations":{"file":"CruiseHub_exports_2026-09.xlsx","at":"2026-10-02T10:15:00.000Z","label":"Cancellations","rows":[{"agent":"Ethan Cole","count":3,"reported":"Yes"},{"agent":"Grace Holden","count":2,"reported":"Yes"},{"agent":"Sophie Lane","count":1,"reported":"Yes"},{"agent":"Ava Sinclair","count":2,"reported":"Yes"}]},"insurance":{"file":"CruiseHub_exports_2026-09.xlsx","at":"2026-10-02T10:15:00.000Z","label":"Insurance","rows":[{"agent":"Ethan Cole","policies":2},{"agent":"Grace Holden","policies":1},{"agent":"Nadia Farouk","policies":3}]},"bonus":{"file":"CruiseHub_exports_2026-09.xlsx","at":"2026-10-02T10:15:00.000Z","label":"Bonus Incentives","rows":[{"agent":"Hannah Ward","bonus":15000,"note":"Manager award"},{"agent":"Ava Sinclair","bonus":2000,"note":"Group booking incentive"}]},"attendance":{"file":"CruiseHub_exports_2026-09.xlsx","at":"2026-10-02T10:15:00.000Z","label":"Attendance","rows":[{"agent":"Ethan Cole","pct":0.99},{"agent":"Grace Holden","pct":0.97},{"agent":"Liam Carter","pct":0.95},{"agent":"Sophie Lane","pct":0.93},{"agent":"Lucas Grant","pct":0.91},{"agent":"Ava Sinclair","pct":0.96},{"agent":"Nadia Farouk","pct":0.98},{"agent":"Karim Mansour","pct":0.96},{"agent":"Salma Youssef","pct":0.97},{"agent":"Omar Shafik","pct":0.95}]},"trustpilot":{"file":"CruiseHub_exports_2026-09.xlsx","at":"2026-10-02T10:15:00.000Z","label":"Trustpilot reviews","rows":[{"agent":"Nadia Farouk","stars":5,"platform":"Trust Pilot"},{"agent":"Ethan Cole","stars":5,"platform":"Trust Pilot"},{"agent":"Mona Adel","stars":5,"platform":"Trust Pilot"}]},"fpBookings":{"file":"CruiseHub_exports_2026-09.xlsx","at":"2026-10-02T10:15:00.000Z","label":"FP Bookings","rows":[{"owner":"Nadia Farouk","fpDate":"2026-09-11","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-13","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-03","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-12","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-17","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-02","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-14","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-03","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-03","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-02","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-08","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-19","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-02","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-02","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-10","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-05","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-19","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-18","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-04","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-12","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-18","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-19","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-20","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-16","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-25","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-15","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-12","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-08","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-23","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-03","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-17","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-11","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-10","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-04","stage":"Closed Won Approved","category":"Suite","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-06","stage":"Closed Won Approved","category":"Suite","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-05","stage":"Closed Won Approved","category":"Suite","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-14","stage":"Closed Won Approved","category":"Balcony","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-22","stage":"Closed Won Approved","category":"Balcony","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-25","stage":"Closed Won Approved","category":"Suite","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-11","stage":"Closed Won Approved","category":"Suite","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-20","stage":"Closed Won Approved","category":"Suite","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-19","stage":"Closed Won Approved","category":"Suite","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-03","stage":"Closed Won Approved","category":"Balcony","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-09-09","stage":"Closed Won Approved","category":"Suite","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-09-23","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-09-02","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-09-21","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-09-10","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-09-22","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-09-01","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-09-12","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-09-20","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-09-16","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-09-07","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-09-05","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-09-13","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-09-28","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-09-03","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-09-15","stage":"Closed Won Approved","category":"Suite","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-09-18","stage":"Closed Won Approved","category":"Suite","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-09-05","stage":"Closed Won Approved","category":"Suite","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Salma Youssef","fpDate":"2026-09-28","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Salma Youssef","fpDate":"2026-09-23","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Salma Youssef","fpDate":"2026-09-12","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Salma Youssef","fpDate":"2026-09-08","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Salma Youssef","fpDate":"2026-09-03","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-09-05","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-09-22","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-09-01","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-09-27","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-09-09","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-09-01","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-09-14","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-09-20","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-09-05","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-09-15","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-09-13","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-09-13","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-09-16","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-09-02","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-09-03","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-09-15","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-09-04","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-09-20","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-09-04","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-09-19","stage":"Closed Won Approved","category":"Balcony","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-09-18","stage":"Closed Won Approved","category":"Balcony","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-09-12","stage":"Closed Won Approved","category":"Balcony","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-09-03","stage":"Closed Won Approved","category":"Balcony","cabins":1,"sail":null,"cancelled":"No"}]}},"inputs":{"Ava Sinclair":{"method":"Bank transfer"}},"ignored":["CruiseHub Support"],"closed":true,"closedAt":"2026-10-21T12:05:40.905Z","snapshot":{"rows":[{"name":"Nadia Farouk","arabicName":"نادية فاروق","role":"Cruise Manager","plan":"fp","pax":0,"deals":50,"inAll":82,"inNM":0,"outb":0,"csat":4.78,"nps":null,"lead":0.9,"cancels":0,"conv":0.6097560975609756,"policies":3,"bonus":0,"stipend":4000,"insurance":450,"reviewCount":1,"reviewRate":500,"owed":0,"days":null,"flags":[["good","Milestone"]],"commUSD":352,"msUSD":400,"override":null,"att":0.98,"ramp":false,"attLoss":0,"fpCount":44,"fpIO":33,"fpBS":11,"fpExcluded":0,"tierEarned":3,"misses":[],"tierPaid":3,"fpRateIO":7,"fpRateBS":11,"unreported":false,"fpUSD":352,"depositsBefore":0,"depositsNow":50,"ms20":150,"ms25":250,"reviews":500,"commEGP":39344.64,"bonusTotal":4950,"total":44294.64,"deduct":0,"deductNote":"","method":"","final":44294.64},{"name":"Karim Mansour","arabicName":"كريم حسن","role":"Cruise Manager","plan":"fp","pax":0,"deals":12,"inAll":30,"inNM":0,"outb":0,"csat":4.6,"nps":null,"lead":0.82,"cancels":0,"conv":0.4,"policies":0,"bonus":0,"stipend":4000,"insurance":0,"reviewCount":0,"reviewRate":250,"owed":0,"days":null,"flags":[["warn","Missed a standard, already tier 1"]],"commUSD":37,"msUSD":0,"override":null,"att":0.96,"ramp":false,"attLoss":0,"fpCount":17,"fpIO":14,"fpBS":3,"fpExcluded":0,"tierEarned":1,"misses":["Conversion"],"tierPaid":1,"fpRateIO":2,"fpRateBS":3,"unreported":false,"fpUSD":37,"depositsBefore":0,"depositsNow":12,"ms20":0,"ms25":0,"reviews":0,"commEGP":1935.84,"bonusTotal":4000,"total":5935.84,"deduct":0,"deductNote":"","method":"","final":5935.84},{"name":"Salma Youssef","arabicName":"سلمى يوسف","role":"Cruise Manager","plan":"fp","pax":0,"deals":6,"inAll":15,"inNM":0,"outb":0,"csat":4.5,"nps":null,"lead":0.8,"cancels":0,"conv":0.4,"policies":0,"bonus":0,"stipend":2000,"insurance":0,"reviewCount":0,"reviewRate":250,"owed":0,"days":null,"flags":[["info","First 90 days, attendance not applied"],["warn","Missed a standard, already tier 1"]],"commUSD":10,"msUSD":0,"override":null,"att":0.97,"ramp":true,"attLoss":0,"fpCount":5,"fpIO":5,"fpBS":0,"fpExcluded":0,"tierEarned":1,"misses":["Conversion"],"tierPaid":1,"fpRateIO":2,"fpRateBS":3,"unreported":false,"fpUSD":10,"depositsBefore":0,"depositsNow":6,"ms20":0,"ms25":0,"reviews":0,"commEGP":523.2,"bonusTotal":2000,"total":2523.2,"deduct":0,"deductNote":"","method":"","final":2523.2},{"name":"Omar Shafik","arabicName":"عمر شفيق","role":"Cruise Manager","plan":"fp","pax":0,"deals":22,"inAll":38,"inNM":0,"outb":0,"csat":4.6,"nps":null,"lead":0.85,"cancels":0,"conv":0.5789473684210527,"policies":0,"bonus":0,"stipend":4000,"insurance":0,"reviewCount":0,"reviewRate":250,"owed":0,"days":null,"flags":[["good","Milestone"]],"commUSD":50,"msUSD":150,"override":null,"att":0.95,"ramp":false,"attLoss":0,"fpCount":23,"fpIO":19,"fpBS":4,"fpExcluded":0,"tierEarned":1,"misses":[],"tierPaid":1,"fpRateIO":2,"fpRateBS":3,"unreported":false,"fpUSD":50,"depositsBefore":0,"depositsNow":22,"ms20":150,"ms25":0,"reviews":0,"commEGP":10464,"bonusTotal":4000,"total":14464,"deduct":0,"deductNote":"","method":"","final":14464},{"name":"Ethan Cole","arabicName":"","role":"Sales Agent","plan":"pax","pax":138,"deals":60,"inAll":76,"inNM":70,"outb":110,"csat":4.82,"nps":0.84,"lead":null,"cancels":3,"conv":0.7894736842105263,"policies":2,"bonus":0,"stipend":4000,"insurance":300,"reviewCount":1,"reviewRate":250,"owed":0,"days":null,"flags":[],"commUSD":1063.125,"msUSD":0,"override":null,"att":0.99,"ramp":false,"attLoss":0,"finalPax":135,"paxRate":7,"effInbound":81,"levelEarned":"Qualified","multEarned":1.125,"level":"Qualified","mult":1.125,"reviews":250,"commEGP":55622.7,"bonusTotal":4550,"total":60172.7,"deduct":0,"deductNote":"","method":"","final":60172.7},{"name":"Grace Holden","arabicName":"","role":"Sales Agent","plan":"pax","pax":84,"deals":41,"inAll":60,"inNM":55,"outb":95,"csat":4.66,"nps":0.73,"lead":null,"cancels":2,"conv":0.6833333333333333,"policies":1,"bonus":0,"stipend":4000,"insurance":150,"reviewCount":0,"reviewRate":250,"owed":0,"days":null,"flags":[],"commUSD":420.24999999999994,"msUSD":0,"override":null,"att":0.97,"ramp":false,"attLoss":0,"finalPax":82,"paxRate":5,"effInbound":64,"levelEarned":"Limited","multEarned":1.025,"level":"Limited","mult":1.025,"reviews":0,"commEGP":21987.479999999996,"bonusTotal":4150,"total":26137.48,"deduct":0,"deductNote":"","method":"","final":26137.48},{"name":"Liam Carter","arabicName":"","role":"Sales Agent","plan":"pax","pax":57,"deals":27,"inAll":54,"inNM":50,"outb":60,"csat":4.4,"nps":0.6,"lead":null,"cancels":0,"conv":0.5,"policies":0,"bonus":0,"stipend":2000,"insurance":0,"reviewCount":0,"reviewRate":250,"owed":0,"days":null,"flags":[],"commUSD":116.85,"msUSD":0,"override":null,"att":0.95,"ramp":false,"attLoss":0,"finalPax":57,"paxRate":2,"effInbound":56,"levelEarned":"Limited","multEarned":1.025,"level":"Limited","mult":1.025,"reviews":0,"commEGP":6113.592,"bonusTotal":2000,"total":8113.59,"deduct":0,"deductNote":"","method":"","final":8113.59},{"name":"Sophie Lane","arabicName":"","role":"Sales Agent","plan":"pax","pax":66,"deals":33,"inAll":52,"inNM":48,"outb":170,"csat":4.55,"nps":0.66,"lead":null,"cancels":1,"conv":0.6346153846153846,"policies":0,"bonus":0,"stipend":4000,"insurance":0,"reviewCount":0,"reviewRate":250,"owed":0,"days":null,"flags":[["plain","Trial: attendance would cost $13.00"]],"commUSD":279.5,"msUSD":0,"override":null,"att":0.93,"ramp":false,"attLoss":13.00000000000001,"finalPax":65,"paxRate":4,"effInbound":65,"levelEarned":"Participation Cap","multEarned":1.075,"level":"Participation Cap","mult":1.075,"reviews":0,"commEGP":14623.44,"bonusTotal":4000,"total":18623.44,"deduct":0,"deductNote":"","method":"","final":18623.44},{"name":"Lucas Grant","arabicName":"","role":"Sales Agent","plan":"pax","pax":29,"deals":12,"inAll":40,"inNM":36,"outb":80,"csat":4.3,"nps":0.5,"lead":null,"cancels":0,"conv":0.3,"policies":0,"bonus":0,"stipend":2000,"insurance":0,"reviewCount":0,"reviewRate":250,"owed":0,"days":null,"flags":[["plain","Below 50 pax"]],"commUSD":0,"msUSD":0,"override":null,"att":0.91,"ramp":false,"attLoss":0,"finalPax":29,"paxRate":0,"effInbound":44,"levelEarned":"Need Improvement","multEarned":1,"level":"Need Improvement","mult":1,"reviews":0,"commEGP":0,"bonusTotal":2000,"total":2000,"deduct":0,"deductNote":"","method":"","final":2000},{"name":"Ava Sinclair","arabicName":"","role":"Sales Agent","plan":"pax","pax":71,"deals":30,"inAll":48,"inNM":45,"outb":90,"csat":4.7,"nps":0.75,"lead":null,"cancels":2,"conv":0.625,"policies":0,"bonus":2000,"stipend":4000,"insurance":0,"reviewCount":0,"reviewRate":250,"owed":0,"days":null,"flags":[],"commUSD":282.9,"msUSD":0,"override":null,"att":0.96,"ramp":false,"attLoss":0,"finalPax":69,"paxRate":4,"effInbound":54,"levelEarned":"Limited","multEarned":1.025,"level":"Limited","mult":1.025,"reviews":0,"commEGP":14801.328,"bonusTotal":6000,"total":20801.33,"deduct":0,"deductNote":"","method":"Bank transfer","final":20801.33},{"name":"Hannah Ward","arabicName":"","role":"Lead / Manager","plan":"none","pax":0,"deals":0,"inAll":null,"inNM":0,"outb":0,"csat":null,"nps":null,"lead":null,"cancels":0,"conv":null,"policies":0,"bonus":15000,"stipend":2000,"insurance":0,"reviewCount":0,"reviewRate":250,"owed":0,"days":null,"flags":[],"commUSD":0,"msUSD":0,"override":0,"att":null,"ramp":false,"attLoss":0,"reviews":0,"commEGP":0,"bonusTotal":17000,"total":17000,"deduct":0,"deductNote":"","method":"","final":17000},{"name":"Mona Adel","arabicName":"منى عادل","role":"Service","plan":"none","pax":0,"deals":0,"inAll":null,"inNM":0,"outb":0,"csat":null,"nps":null,"lead":null,"cancels":0,"conv":null,"policies":0,"bonus":0,"stipend":2000,"insurance":0,"reviewCount":1,"reviewRate":500,"owed":0,"days":null,"flags":[],"commUSD":0,"msUSD":0,"override":null,"att":null,"ramp":false,"attLoss":0,"reviews":500,"commEGP":0,"bonusTotal":2500,"total":2500,"deduct":0,"deductNote":"","method":"","final":2500},{"name":"Tarek Samir","arabicName":"طارق سمير","role":"Back office","plan":"none","pax":0,"deals":0,"inAll":null,"inNM":0,"outb":0,"csat":null,"nps":null,"lead":null,"cancels":0,"conv":null,"policies":0,"bonus":0,"stipend":2000,"insurance":0,"reviewCount":0,"reviewRate":250,"owed":0,"days":null,"flags":[],"commUSD":0,"msUSD":0,"override":null,"att":null,"ramp":false,"attLoss":0,"reviews":0,"commEGP":0,"bonusTotal":2000,"total":2000,"deduct":0,"deductNote":"","method":"","final":2000}],"rate":52.32,"wd":22,"unmatched":{},"totals":{"total":224566.21999999997,"commEGP":165416.22,"bonus":59150,"stipend":40000,"insurance":900,"extra":17000,"reviews":1250,"deduct":0,"final":224566.21999999997,"paid":13,"attLossUSD":13.00000000000001,"attShadow":true,"attOn":true}},"closeEffects":{"Nadia Farouk":{"depositsToDate":0,"ms20Paid":false,"ms25Paid":false},"Karim Mansour":{"depositsToDate":0,"ms20Paid":false,"ms25Paid":false},"Salma Youssef":{"depositsToDate":0,"ms20Paid":false,"ms25Paid":false},"Omar Shafik":{"depositsToDate":0,"ms20Paid":false,"ms25Paid":false}}},"months/2026-10":{"id":"2026-10","rate":52.1,"workingDays":22,"sources":{"paxdeal":{"file":"CruiseHub_exports_2026-10.xlsx","at":"2026-11-01T09:40:00.000Z","label":"PaxDeal","rows":[{"agent":"Ethan Cole","pax":150,"deals":66},{"agent":"Grace Holden","pax":95,"deals":48},{"agent":"Liam Carter","pax":64,"deals":30},{"agent":"Sophie Lane","pax":58,"deals":31},{"agent":"Lucas Grant","pax":41,"deals":15},{"agent":"Ava Sinclair","pax":22,"deals":9},{"agent":"Nadia Farouk","pax":0,"deals":55},{"agent":"Karim","pax":0,"deals":14},{"agent":"Salma Youssef","pax":0,"deals":9},{"agent":"Omar Shafik","pax":0,"deals":20},{"agent":"J. Patel","pax":6,"deals":3}]},"inboundAll":{"file":"CruiseHub_exports_2026-10.xlsx","at":"2026-11-01T09:40:00.000Z","label":"Inbound all (incl. missed)","rows":[{"agent":"Ethan Cole","calls":80},{"agent":"Grace Holden","calls":66},{"agent":"Liam Carter","calls":57},{"agent":"Sophie Lane","calls":50},{"agent":"Lucas Grant","calls":45},{"agent":"Ava Sinclair","calls":21},{"agent":"Nadia Farouk","calls":90},{"agent":"Karim Mansour","calls":26},{"agent":"Salma Youssef","calls":19},{"agent":"Omar Shafik","calls":34},{"agent":"CruiseHub Support","calls":12}]},"inboundNoMissed":{"file":"CruiseHub_exports_2026-10.xlsx","at":"2026-11-01T09:40:00.000Z","label":"Inbound no missed","rows":[{"agent":"Ethan Cole","calls":72},{"agent":"Grace Holden","calls":60},{"agent":"Liam Carter","calls":52},{"agent":"Sophie Lane","calls":55},{"agent":"Lucas Grant","calls":40},{"agent":"Ava Sinclair","calls":19}]},"outbound":{"file":"CruiseHub_exports_2026-10.xlsx","at":"2026-11-01T09:40:00.000Z","label":"Outbound","rows":[{"agent":"Ethan Cole","calls":120},{"agent":"Grace Holden","calls":90},{"agent":"Liam Carter","calls":70},{"agent":"Sophie Lane","calls":150},{"agent":"Lucas Grant","calls":85},{"agent":"Ava Sinclair","calls":30}]},"csat":{"file":"CruiseHub_exports_2026-10.xlsx","at":"2026-11-01T09:40:00.000Z","label":"CSAT","rows":[{"agent":"Ethan Cole","score":4.85},{"agent":"Grace Holden","score":4.7},{"agent":"Liam Carter","score":4.4},{"agent":"Sophie Lane","score":4.5},{"agent":"Lucas Grant","score":4.2},{"agent":"Ava Sinclair","score":4.6},{"agent":"Nadia Farouk","score":4.8},{"agent":"Karim Mansour","score":4.3},{"agent":"Salma Youssef","score":4.6},{"agent":"Omar Shafik","score":4.7}]},"nps":{"file":"CruiseHub_exports_2026-10.xlsx","at":"2026-11-01T09:40:00.000Z","label":"NPS","rows":[{"agent":"Ethan Cole","score":0.86},{"agent":"Grace Holden","score":0.74},{"agent":"Liam Carter","score":0.62},{"agent":"Sophie Lane","score":0.65},{"agent":"Lucas Grant","score":0.55},{"agent":"Ava Sinclair","score":0.7}]},"leadScore":{"file":"CruiseHub_exports_2026-10.xlsx","at":"2026-11-01T09:40:00.000Z","label":"Lead Score","rows":[{"agent":"Nadia Farouk","score":0.88},{"agent":"Karim Mansour","score":0.81},{"agent":"Salma Youssef","score":0.83},{"agent":"Omar Shafik","score":0.86}]},"cancellations":{"file":"CruiseHub_exports_2026-10.xlsx","at":"2026-11-01T09:40:00.000Z","label":"Cancellations","rows":[{"agent":"Ethan Cole","count":4,"reported":"Yes"},{"agent":"Grace Holden","count":3,"reported":"Yes"},{"agent":"Liam Carter","count":2,"reported":"Yes"},{"agent":"Sophie Lane","count":1,"reported":"Yes"},{"agent":"Omar Shafik","count":1,"reported":"No"}]},"insurance":{"file":"CruiseHub_exports_2026-10.xlsx","at":"2026-11-01T09:40:00.000Z","label":"Insurance","rows":[{"agent":"Ethan Cole","policies":3},{"agent":"Grace Holden","policies":2},{"agent":"Nadia Farouk","policies":4},{"agent":"Karim Mansour","policies":1}]},"bonus":{"file":"CruiseHub_exports_2026-10.xlsx","at":"2026-11-01T09:40:00.000Z","label":"Bonus Incentives","rows":[{"agent":"Hannah Ward","bonus":15000,"note":"Manager award"},{"agent":"Grace Holden","bonus":2000,"note":"Group sale incentive"},{"agent":"Mona Adel","bonus":1000,"note":"Weekend escalations cover"}]},"attendance":{"file":"CruiseHub_exports_2026-10.xlsx","at":"2026-11-01T09:40:00.000Z","label":"Attendance","rows":[{"agent":"Ethan Cole","pct":0.995},{"agent":"Grace Holden","pct":0.97},{"agent":"Liam Carter","pct":0.96},{"agent":"Sophie Lane","pct":0.88},{"agent":"Lucas Grant","pct":0.92},{"agent":"Ava Sinclair","pct":0.95},{"agent":"Nadia Farouk","pct":0.99},{"agent":"Karim Mansour","pct":0.955},{"agent":"Salma Youssef","pct":0.94},{"agent":"Omar Shafik","pct":0.97}]},"trustpilot":{"file":"CruiseHub_exports_2026-10.xlsx","at":"2026-11-01T09:40:00.000Z","label":"Trustpilot reviews","rows":[{"agent":"Nadia","stars":5,"platform":"Trust Pilot"},{"agent":"Nadia","stars":5,"platform":"Trust Pilot"},{"agent":"Nadia","stars":5,"platform":"Trust Pilot"},{"agent":"Karim Mansour","stars":3,"platform":"Trust Pilot"},{"agent":"Karim Mansour","stars":5,"platform":"Trust Pilot"},{"agent":"Ethan Cole","stars":5,"platform":"Trust Pilot"},{"agent":"Ethan Cole","stars":5,"platform":"Trust Pilot"},{"agent":"Mona Adel","stars":5,"platform":"Trust Pilot"},{"agent":"Mona Adel","stars":5,"platform":"Trust Pilot"}]},"fpBookings":{"file":"CruiseHub_exports_2026-10.xlsx","at":"2026-11-01T09:40:00.000Z","label":"FP Bookings","rows":[{"owner":"Nadia Farouk","fpDate":"2026-10-20","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-05","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-12","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-16","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-04","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-15","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-16","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-03","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-04","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-24","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-16","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-17","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-07","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-05","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-25","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-21","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-23","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-17","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-06","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-25","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-18","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-21","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-20","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-26","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-27","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-24","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-07","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-12","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-01","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-16","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-07","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-15","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-12","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-08","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-08","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-07","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-07","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-20","stage":"Closed Won Approved","category":"Balcony","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-16","stage":"Closed Won Approved","category":"Suite","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-26","stage":"Closed Won Approved","category":"Balcony","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-27","stage":"Closed Won Approved","category":"Balcony","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-13","stage":"Closed Won Approved","category":"Balcony","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-16","stage":"Closed Won Approved","category":"Balcony","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-14","stage":"Closed Won Approved","category":"Suite","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-03","stage":"Closed Won Approved","category":"Suite","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-15","stage":"Closed Won Approved","category":"Suite","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-24","stage":"Closed Won Approved","category":"Balcony","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-24","stage":"Closed Won Approved","category":"Balcony","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-06","stage":"Closed Won Approved","category":"Balcony","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-01","stage":"Closed Won Approved","category":"Balcony","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-10-19","stage":"Closed Won Approved","category":"Suite","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Nadia Farouk","fpDate":"2026-08-20","stage":"Closed Won Approved","category":"Balcony","cabins":9,"sail":"2026-10-18","cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-10-26","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-10-20","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-10-22","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-10-05","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-10-01","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-10-26","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-10-17","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-10-14","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-10-27","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-10-01","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-10-07","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-10-17","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-10-25","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-10-09","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-10-27","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-10-02","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-10-15","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-10-27","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-10-18","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-10-17","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-10-28","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-10-25","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-10-20","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-10-25","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-10-06","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-10-16","stage":"Closed Won Approved","category":"Balcony","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-10-18","stage":"Closed Won Approved","category":"Balcony","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-10-11","stage":"Closed Won Approved","category":"Suite","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-10-26","stage":"Closed Won Approved","category":"Balcony","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-10-18","stage":"Closed Won Approved","category":"Balcony","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Karim Mansour","fpDate":"2026-10-08","stage":"Closed Won Approved","category":"Balcony","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Salma Youssef","fpDate":"2026-10-09","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Salma Youssef","fpDate":"2026-10-25","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Salma Youssef","fpDate":"2026-10-17","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Salma Youssef","fpDate":"2026-10-18","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Salma Youssef","fpDate":"2026-10-25","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Salma Youssef","fpDate":"2026-10-15","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Salma Youssef","fpDate":"2026-10-20","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Salma Youssef","fpDate":"2026-10-23","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Salma Youssef","fpDate":"2026-10-15","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Salma Youssef","fpDate":"2026-10-17","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Salma Youssef","fpDate":"2026-10-23","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Salma Youssef","fpDate":"2026-10-18","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Salma Youssef","fpDate":"2026-10-27","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Salma Youssef","fpDate":"2026-10-05","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-10-04","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-10-15","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-10-03","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-10-14","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-10-07","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-10-26","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-10-25","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-10-23","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-10-05","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-10-05","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-10-08","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-10-13","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-10-06","stage":"Closed Won Approved","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-10-06","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-10-17","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-10-11","stage":"Closed Won Approved","category":"Suite","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-10-07","stage":"Closed Won Approved","category":"Suite","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-10-11","stage":"Closed Won Approved","category":"Balcony","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-10-09","stage":"Pending Final","category":"Inside","cabins":1,"sail":null,"cancelled":"No"},{"owner":"Omar Shafik","fpDate":"2026-10-12","stage":"Closed Won Approved","category":"Oceanview","cabins":1,"sail":null,"cancelled":"Yes"}]}},"inputs":{"Liam Carter":{"owed":25,"note":"September pax correction"},"Lucas Grant":{"deduct":500,"deductNote":"Salary advance repayment"},"Ava Sinclair":{"days":11}},"ignored":["CruiseHub Support"],"closed":false}},"demo":true}</script>
+<input type="file" id="restoreFile" accept=".json,application/json" hidden>
+
+<script>
+"use strict";
+/* ---------------- defaults (match the Sept 2026 workbook and the Oct 2026 FP plan) ---------------- */
+const DEFAULT_SETTINGS = {
+  rate: 52.32, workingDays: 22,
+  pax: {
+    tiers: [{min:50,rate:2},{min:60,rate:4},{min:80,rate:5},{min:100,rate:6},{min:120,rate:7},{min:140,rate:8}],
+    levels: [
+      {name:"Need Improvement", conv:0,   csat:null, nps:null, inb:null, mult:1.000},
+      {name:"Limited",          conv:0.5, csat:null, nps:null, inb:null, mult:1.025},
+      {name:"Participation Cap",conv:0.6, csat:null, nps:null, inb:65,   mult:1.075},
+      {name:"Qualified",        conv:0.7, csat:4.6,  nps:0.7,  inb:65,   mult:1.125},
+      {name:"High Performer",   conv:0.8, csat:4.8,  nps:0.8,  inb:65,   mult:1.150}
+    ],
+    outboundPerCredit: 10
+  },
+  fp: {
+    tiers: [{min:1,io:2,bs:3},{min:25,io:4,bs:6},{min:40,io:7,bs:11},{min:50,io:10,bs:14},{min:60,io:12,bs:16},{min:70,io:15,bs:19}],
+    conv:0.55, csat:4.5, lead:0.8, missingMet:true, groupCabins:8, stage:"Closed Won Approved", ms20:150, ms25:250
+  },
+  bonus: { insurance:150, reviewCM:250, reviewHigher:500, reviewService:500, minStars:4 },
+  attendance: { enabled:true, shadow:true, gate:0.9, rampDays:90,
+    caps:[{min:0.9,level:"Limited"},{min:0.95,level:"Participation Cap"},{min:0.97,level:"Qualified"},{min:0.99,level:"High Performer"}] }
+};
+const ROLES = ["Cruise Manager","Sales Agent","Lead / Manager","Service","Back office"];
+const PLANS = {fp:"FP bonus plan", pax:"Pax commission plan", none:"Bonuses only"};
+
+/* Each upload: which columns we need, and words that usually appear in their headers. */
+const SOURCES = [
+  {key:"fpBookings", label:"FP Bookings", plan:"fp", rows:true,
+    fields:[["owner","Deal owner",["deal owner","owner","agent","cruise manager"]],["fpDate","Final payment date",["final payment","fp date","payment date","close date"]],["stage","Deal stage",["deal stage","stage"],1],["category","Cabin category",["cabin","category","stateroom"],1],["cabins","Number of cabins",["cabins","number of cabins","rooms"],1],["sail","Sailing date",["sail","departure","embark"],1],["cancelled","Cancelled",["cancel"],1]]},
+  {key:"paxdeal", label:"PaxDeal", plan:"both", fields:[["agent","Agent",["agent","owner","name"]],["pax","Pax",["pax","passenger","guests"]],["deals","Deals",["deal"]]]},
+  {key:"inboundAll", label:"Inbound all (incl. missed)", plan:"both", fields:[["agent","Agent",["agent","name","user"]],["calls","Calls",["inbound","call","count","total"]]]},
+  {key:"inboundNoMissed", label:"Inbound no missed", plan:"pax", fields:[["agent","Agent",["agent","name","user"]],["calls","Calls",["inbound","call","count","total"]]]},
+  {key:"outbound", label:"Outbound", plan:"pax", fields:[["agent","Agent",["agent","name","user"]],["calls","Calls",["outbound","call","count","total"]]]},
+  {key:"csat", label:"CSAT", plan:"both", fields:[["agent","Agent",["agent","name","owner"]],["score","CSAT score",["csat","score","rating","average"]]]},
+  {key:"nps", label:"NPS", plan:"pax", fields:[["agent","Agent",["agent","name","owner"]],["score","NPS score",["nps","score"]]]},
+  {key:"leadScore", label:"Lead Score", plan:"fp", fields:[["agent","Agent",["agent","name","owner"]],["score","Lead score",["lead","score"]]]},
+  {key:"cancellations", label:"Cancellations", plan:"both", fields:[["agent","Deal owner",["deal owner","owner","agent"]],["count","Cancellations",["cancel","count"],1],["reported","Reported (ticket / group chat)",["ticket","group chat","reported"],1]]},
+  {key:"insurance", label:"Insurance", plan:"both", fields:[["agent","Agent",["agent","owner","name"]],["policies","Policies",["polic","insurance","count"]]]},
+  {key:"bonus", label:"Bonus Incentives", plan:"both", fields:[["agent","Agent",["agent","name"]],["bonus","Bonus (EGP)",["bonus (egp)","bonus","amount"]],["oneoff","One-off bonus (EGP)",["one-off","one off","oneoff"],1],["note","Reason / note",["reason","note"],1]]},
+  {key:"attendance", label:"Attendance", plan:"both", fields:[["agent","Agent",["agent","name","employee"]],["pct","Attendance %",["attendance %","attendance","%","percent"]]]},
+  {key:"trustpilot", label:"Trustpilot reviews", plan:"both", rows:true, fields:[["agent","Agent name",["agent name","agent","manager"]],["stars","Rating",["rate","rating","star"],1],["platform","Platform",["platform"],1]]}
+];
+
+/* ---------------- helpers ---------------- */
+const $ = (s, r=document) => r.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const norm = s => String(s ?? "").toLowerCase().replace(/\s+/g," ").trim();
+const clone = o => JSON.parse(JSON.stringify(o));
+const fmt = (n, d=0) => (n==null||isNaN(n)) ? "-" : Number(n).toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
+const egp = n => fmt(n,0);
+const usd = n => (n==null||isNaN(n)) ? "-" : "$"+fmt(n,2);
+const pct = n => (n==null||isNaN(n)) ? "-" : (n*100).toFixed(1)+"%";
+function num(v){ if(v==null||v==="") return null; if(typeof v==="number") return v; const s=String(v).replace(/[,$\s]|EGP|USD/gi,""); const isPct=s.endsWith("%"); const n=parseFloat(s); if(isNaN(n)) return null; return isPct? n/100 : n; }
+function ratio(v){ const n=num(v); if(n==null) return null; return n>1.5 ? n/100 : n; }
+function isoDate(v){
+  if(v==null||v==="") return null;
+  if(v instanceof Date && !isNaN(v)) return new Date(Date.UTC(v.getFullYear(),v.getMonth(),v.getDate())).toISOString().slice(0,10);
+  if(typeof v==="number" && window.XLSX){ const d=XLSX.SSF.parse_date_code(v); if(d) return `${d.y}-${String(d.m).padStart(2,"0")}-${String(d.d).padStart(2,"0")}`; }
+  const s=String(v).trim(); let m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/); if(m) return `${m[1]}-${m[2].padStart(2,"0")}-${m[3].padStart(2,"0")}`;
+  m=s.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})/); if(m){ let y=m[3].length===2?"20"+m[3]:m[3]; let a=+m[1], b=+m[2]; let mo=a, d=b; if(a>12){d=a;mo=b;} return `${y}-${String(mo).padStart(2,"0")}-${String(d).padStart(2,"0")}`; }
+  const t=Date.parse(s); if(!isNaN(t)) return new Date(t).toISOString().slice(0,10); return null;
+}
+const yes = v => /^(y|yes|true|1|cancel)/i.test(String(v??"").trim());
+const no = v => /^(n|no|false|0)$/i.test(String(v??"").trim());
+function monthLabel(id){ const [y,m]=id.split("-").map(Number); return new Date(Date.UTC(y,m-1,1)).toLocaleString("en-GB",{month:"long",year:"numeric",timeZone:"UTC"}); }
+function nextMonthId(id){ let [y,m]=id.split("-").map(Number); m++; if(m>12){m=1;y++;} return `${y}-${String(m).padStart(2,"0")}`; }
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(()=>t.hidden=true,2600); }
+
+/* ---------------- state ---------------- */
+const S = { db:null, canEdit:false, downloads:null, settings:null, roster:null, months:[], monthId:null, month:null,
+  tab: (()=>{ try{const v=localStorage.getItem("chcc.tab"); return (!v||v==="results")?"fp":v;}catch(e){return "fp";} })(),
+  open:{}, pending:null, ready:{settings:false,roster:false,months:false}, unsubMonth:null, dbMissing:false };
+
+function personMap(roster){
+  const m=new Map();
+  for(const p of roster.people){ m.set(norm(p.name),p); for(const a of (p.aliases||"").split(",")) if(norm(a)) m.set(norm(a),p); }
+  return m;
+}
+
+/* ---------------- the calculation ---------------- */
+function inRamp(start, mid, days){
+  if(!start) return false;
+  const s=Date.parse(start+"T00:00:00Z"); const e=Date.parse(nextMonthId(mid)+"-01T00:00:00Z")-86400000;
+  return !isNaN(s) && (e-s)/86400000 < days;
+}
+function aggregate(month, key, pm, unmatched){
+  const src=month.sources?.[key]; const out=new Map(); if(!src) return out;
+  const ignored=new Set((month.ignored||[]).map(norm));
+  for(const r of src.rows){
+    const nm=r.agent ?? r.owner; if(!norm(nm)) continue;
+    const p=pm.get(norm(nm));
+    if(!p){ if(!ignored.has(norm(nm))){ const u=unmatched.get(nm)||new Set(); u.add(src.label||key); unmatched.set(nm,u);} continue; }
+    const list=out.get(p.name)||[]; list.push(r); out.set(p.name,list);
+  }
+  return out;
+}
+const sum = (list, f) => list ? list.reduce((a,r)=>a+(num(r[f])||0),0) : 0;
+const avg = (list, f, conv=num) => { if(!list) return null; const v=list.map(r=>conv(r[f])).filter(x=>x!=null); return v.length? v.reduce((a,b)=>a+b,0)/v.length : null; };
+
+function compute(settings, roster, month){
+  const pm=personMap(roster), unmatched=new Map(), A={};
+  for(const s of SOURCES) A[s.key]=aggregate(month,s.key,pm,unmatched);
+  const rate=num(month.rate) ?? settings.rate, wd=num(month.workingDays) ?? settings.workingDays;
+  const mid=month.id; const B=settings.bonus; const AT={...DEFAULT_SETTINGS.attendance, ...(settings.attendance||{})};
+  const rows=[];
+  for(const p of roster.people){
+    const leftBefore = p.status==="left" && (!p.lastDay || p.lastDay < mid+"-01");
+    if(leftBefore) continue;
+    const inp=month.inputs?.[p.name]||{};
+    const pax=sum(A.paxdeal.get(p.name),"pax"), deals=sum(A.paxdeal.get(p.name),"deals");
+    const inAll=A.inboundAll.has(p.name)? sum(A.inboundAll.get(p.name),"calls") : null;
+    const inNM=sum(A.inboundNoMissed.get(p.name),"calls"), outb=sum(A.outbound.get(p.name),"calls");
+    const csat=avg(A.csat.get(p.name),"score"), nps=avg(A.nps.get(p.name),"score",ratio), lead=avg(A.leadScore.get(p.name),"score",ratio);
+    const cRows=A.cancellations.get(p.name)||[];
+    const cancels=cRows.reduce((a,r)=>a+(r.count!=null&&r.count!==""? (num(r.count)||0) : 1),0);
+    const unreported=cRows.some(r=>no(r.reported));
+    const conv = inAll ? deals/inAll : (deals>0? null : null);
+    const policies=sum(A.insurance.get(p.name),"policies");
+    const bonusRows=A.bonus.get(p.name)||[];
+    const bonus=bonusRows.reduce((a,r)=>a+(num(r.bonus)||0)+(num(r.oneoff)||0),0);
+    const reviews=(A.trustpilot.get(p.name)||[]);
+    const days=num(inp.days), owed=num(inp.owed)||0;
+    const stipend = p.stipend ? Math.round(num(p.stipend) * (days!=null? days/wd : 1)) : 0;
+    const insurance=policies*B.insurance;
+    const reviewRate = p.role==="Service" ? B.reviewService : (p.higherRate ? B.reviewHigher : B.reviewCM);
+    const row={name:p.name, arabicName:p.arabicName||"", role:p.role, plan:p.plan||"none", pax, deals, inAll, inNM, outb, csat, nps, lead, cancels, conv, policies, bonus, stipend, insurance,
+      reviewCount:reviews.length, reviewRate, owed, days, flags:[], commUSD:0, msUSD:0, override:(p.override===""||p.override==null)? null : num(p.override)};
+    let reviewPay = reviews.length*reviewRate;
+    const attIn = (inp.att!=null && inp.att!=="") ? ratio(inp.att) : avg(A.attendance.get(p.name),"pct",ratio);
+    row.att=attIn; row.ramp=inRamp(p.startDate,mid,AT.rampDays); row.attLoss=0;
+    const attApplies = AT.enabled && attIn!=null && !row.ramp;
+    if(AT.enabled && row.plan!=="none"){ if(row.ramp) row.flags.push(["info","First "+AT.rampDays+" days, attendance not applied"]); else if(attIn==null) row.flags.push(["plain","No attendance data"]); }
+
+    if(row.plan==="pax"){
+      const fin=Math.max(0,pax-cancels); row.finalPax=fin;
+      const tier=[...settings.pax.tiers].sort((a,b)=>a.min-b.min).filter(t=>fin>=t.min).pop();
+      row.paxRate=tier? tier.rate : 0;
+      row.effInbound = inNM + Math.floor(outb/(settings.pax.outboundPerCredit||10));
+      let lvl=settings.pax.levels[0];
+      for(const L of settings.pax.levels){
+        const ok=(conv!=null && conv>=L.conv) && (L.csat==null || (csat!=null && csat>=L.csat)) && (L.nps==null || (nps!=null && nps>=L.nps)) && (L.inb==null || row.effInbound>=L.inb);
+        if(ok && L.mult>=lvl.mult) lvl=L;
+      }
+      let cap=null;
+      if(attApplies){
+        if(attIn < AT.gate) cap={name:"Not Qualified", mult:0};
+        else { const c=AT.caps.filter(x=>attIn>=x.min).sort((a,b)=>a.min-b.min).pop(); const L=c && settings.pax.levels.find(x=>x.name===c.level); if(L && L.mult<lvl.mult) cap=L; }
+      }
+      const base=fin*row.paxRate; row.levelEarned=lvl.name; row.multEarned=lvl.mult;
+      const use = (cap && !AT.shadow) ? cap : lvl;
+      row.level=use.name; row.mult=use.mult;
+      row.commUSD = row.override!=null ? row.override : base*use.mult;
+      if(cap && row.override==null){ const loss=base*(lvl.mult-cap.mult); if(loss>0.005){ row.attLoss=loss;
+        row.flags.push(AT.shadow? ["plain","Trial: attendance would cost "+usd(loss)] : (cap.mult===0? ["bad","Attendance under "+Math.round(AT.gate*100)+"%"] : ["warn","Attendance caps level at "+cap.name])); } }
+      if(fin < settings.pax.tiers[0].min && row.override==null) row.flags.push(["plain",`Below ${settings.pax.tiers[0].min} pax`]);
+      if(inAll==null && pax>0) row.flags.push(["warn","No inbound data"]);
+    } else if(row.plan==="fp"){
+      const F=settings.fp, src=A.fpBookings.get(p.name)||[]; let io=0, bs=0, excluded=0;
+      for(const b of src){
+        const cab=num(b.cabins)||0; const isGroup=cab>=F.groupCabins;
+        const when = isGroup ? (b.sail||b.fpDate) : b.fpDate;
+        if(!when || !when.startsWith(mid)) continue;
+        if(b.stage!=null && b.stage!=="" && !norm(b.stage).includes(norm(F.stage))) { excluded++; continue; }
+        if(b.cancelled!=null && yes(b.cancelled)) { excluded++; continue; }
+        if(p.lastDay && b.fpDate && b.fpDate>p.lastDay) { excluded++; continue; }
+        if(/balcon|suite/i.test(b.category||"")) bs++; else io++;
+      }
+      const count=io+bs; row.fpCount=count; row.fpIO=io; row.fpBS=bs; row.fpExcluded=excluded;
+      const tiers=[...F.tiers].sort((a,b)=>a.min-b.min); let idx=-1; tiers.forEach((t,i)=>{ if(count>=t.min) idx=i; });
+      row.tierEarned=idx+1;
+      const miss=[];
+      const chk=(val,min,label)=>{ if(val==null){ if(!F.missingMet) miss.push(label+" (no data)"); } else if(val<min) miss.push(label); };
+      chk(conv,F.conv,"Conversion"); chk(csat,F.csat,"CSAT"); chk(lead,F.lead,"Lead score");
+      row.misses=miss;
+      const paid = idx<0 ? -1 : Math.max(0, idx-miss.length);
+      row.tierPaid=paid+1; const t=tiers[paid];
+      row.fpRateIO=t? t.io:0; row.fpRateBS=t? t.bs:0;
+      let fp = t ? io*t.io + bs*t.bs : 0;
+      row.unreported=unreported;
+      if(unreported){ fp=0; row.flags.push(["bad","Unreported cancellation"]); }
+      if(attApplies && attIn<AT.gate && fp>0 && row.override==null){ row.attLoss=fp;
+        if(AT.shadow) row.flags.push(["plain","Trial: attendance would cost "+usd(fp)]); else { fp=0; row.flags.push(["bad","Attendance under "+Math.round(AT.gate*100)+"%"]); } }
+      row.fpUSD=fp;
+      const before=num(p.depositsToDate)||0; row.depositsBefore=before; row.depositsNow=before+deals;
+      row.ms20 = (!p.ms20Paid && row.depositsNow>=20) ? F.ms20 : 0;
+      row.ms25 = (!p.ms25Paid && count>=25) ? F.ms25 : 0;
+      row.msUSD=row.ms20+row.ms25;
+      row.commUSD = row.override!=null ? row.override : fp;
+      if(miss.length && idx>=0){ const dr=Math.min(miss.length,idx); row.flags.push(["warn", dr? `Dropped ${dr} tier${dr===1?"":"s"}` : "Missed a standard, already tier 1"]); }
+      if(row.msUSD) row.flags.push(["good","Milestone"]);
+      const low=reviews.filter(r=>num(r.stars)!=null && num(r.stars)<B.minStars).length;
+      if(low){ reviewPay=0; row.flags.push(["bad",`Review under ${B.minStars} stars`]); }
+    }
+    if(row.override!=null && row.plan!=="none") row.flags.push(["info", row.override===0? "No commission (fixed 0)" : "Fixed amount"]);
+    row.reviews=reviewPay;
+    row.commEGP=(row.commUSD+row.msUSD+owed)*rate;
+    row.bonusTotal=insurance+stipend+bonus+reviewPay;
+    row.total=Math.round((row.commEGP+row.bonusTotal)*100)/100;
+    row.deduct=num(inp.deduct)||0; row.deductNote=inp.deductNote||""; row.method=inp.method||"";
+    row.final=Math.round((row.total-row.deduct)*100)/100;
+    rows.push(row);
+  }
+  const tot=k=>rows.reduce((a,r)=>a+(r[k]||0),0);
+  const attLossUSD=tot("attLoss");
+  return {rows, rate, wd, unmatched, totals:{total:tot("total"), commEGP:tot("commEGP"), bonus:tot("bonusTotal"), stipend:tot("stipend"), insurance:tot("insurance"), extra:tot("bonus"), reviews:tot("reviews"), deduct:tot("deduct"), final:rows.reduce((a,r)=>a+Math.max(0,r.final),0), paid:rows.filter(r=>r.total>0).length, attLossUSD, attShadow:AT.enabled&&AT.shadow, attOn:AT.enabled}};
+}
+
+
+/* ---------------- local storage (replaces Claude's saved data when hosted on GitHub Pages) ----------------
+   Everything is kept in this browser on this device, under one key. Use Download backup / Restore backup
+   to move it to another device or keep a copy. */
+const DEMO = new URLSearchParams(location.search).has("demo");
+const LS_KEY = DEMO ? "cruisehub.commission.demo.v1" : "cruisehub.commission.original.v1";
+function demoDocs(){ try{ return JSON.parse(document.getElementById("demoData").textContent).docs; }catch(e){ return {}; } }
+const LocalStore=(()=>{
+  let docs={}; let ok=true;
+  try{ const raw=localStorage.getItem(LS_KEY); if(raw){ const d=JSON.parse(raw); docs=d.docs||{}; } }catch(e){ ok=false; }
+  if(DEMO && !Object.keys(docs).length) docs=demoDocs();
+  const docSubs=new Map(), colSubs=new Map();
+  const colOf=p=>p.split("/")[0];
+  const snapDoc=p=>({exists: docs[p]!==undefined, id:p.split("/")[1], data:()=>JSON.parse(JSON.stringify(docs[p]))});
+  const snapCol=c=>({docs:Object.keys(docs).filter(k=>colOf(k)===c&&k.includes("/")).map(k=>({id:k.split("/")[1], data:()=>JSON.parse(JSON.stringify(docs[k]))}))});
+  function persist(){
+    try{ localStorage.setItem(LS_KEY, JSON.stringify({app:"cruisehub-commission",version:1,savedAt:new Date().toISOString(),docs})); ok=true; }
+    catch(e){ ok=false; const err=new Error("quota"); err.code="quota_exceeded"; throw err; }
+  }
+  function notify(p){
+    (docSubs.get(p)||new Set()).forEach(cb=>cb(snapDoc(p)));
+    (colSubs.get(colOf(p))||new Set()).forEach(cb=>cb(snapCol(colOf(p))));
+  }
+  function merge(base,patch){
+    for(const [k,v] of Object.entries(patch)){
+      if(v && typeof v==="object" && !Array.isArray(v) && v.__delete__===true){ delete base[k]; continue; }
+      if(v && typeof v==="object" && !Array.isArray(v)){ if(!base[k]||typeof base[k]!=="object"||Array.isArray(base[k])) base[k]={}; merge(base[k],v); }
+      else base[k]=v;
+    }
+    return base;
+  }
+  const strip=o=>JSON.parse(JSON.stringify(o));
+  const db={
+    doc(p){ return {
+      onSnapshot(cb){ if(!docSubs.has(p)) docSubs.set(p,new Set()); docSubs.get(p).add(cb); setTimeout(()=>cb(snapDoc(p)),0); return ()=>docSubs.get(p).delete(cb); },
+      async set(data){ const prev=docs[p]; docs[p]=strip(data); try{ persist(); }catch(e){ docs[p]=prev; throw e; } notify(p); },
+      async update(patch){ const prev=docs[p]; docs[p]=merge(strip(docs[p]||{}),strip(patch)); try{ persist(); }catch(e){ docs[p]=prev; throw e; } notify(p); }
+    }; },
+    collection(c){ return { onSnapshot(cb){ if(!colSubs.has(c)) colSubs.set(c,new Set()); colSubs.get(c).add(cb); setTimeout(()=>cb(snapCol(c)),0); return ()=>colSubs.get(c).delete(cb); } }; }
+  };
+  return {
+    db, get ok(){ return ok; },
+    exportJSON(){ return JSON.stringify({app:"cruisehub-commission",version:1,savedAt:new Date().toISOString(),docs},null,1); },
+    importJSON(text){
+      const d=JSON.parse(text); if(!d||d.app!=="cruisehub-commission"||!d.docs) throw new Error("not a backup");
+      const prev=docs; docs=d.docs; try{ persist(); }catch(e){ docs=prev; throw e; }
+      const paths=new Set([...Object.keys(prev),...Object.keys(docs),...docSubs.keys()]); paths.forEach(notify);
+      return {people:(docs["config/roster"]?.people||[]).length, months:Object.keys(docs).filter(k=>k.startsWith("months/")).length};
+    },
+    hasData(){ return Object.keys(docs).length>0; }
+  };
+})();
+function saveFile(name, blob){ const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },500); }
+const localDownloads={ async save({filename,data}){ saveFile(filename,data); } };
+
+/* ---------------- db wiring ---------------- */
+async function init(){
+  try{
+    S.db=LocalStore.db; S.downloads=localDownloads; S.canEdit=true;
+  }catch(e){ S.db=null; }
+  if(!S.db){ S.dbMissing=true; S.settings=clone(DEFAULT_SETTINGS); S.roster={people:[]}; S.months=[]; S.ready={settings:true,roster:true,months:true}; render(); return; }
+  S.db.doc("config/settings").onSnapshot(s=>{ S.settings = s.exists ? {...clone(DEFAULT_SETTINGS), ...s.data()} : clone(DEFAULT_SETTINGS); S.ready.settings=true; render(); }, err);
+  S.db.doc("config/roster").onSnapshot(s=>{ S.roster = s.exists ? clone(s.data()) : {people:[]}; S.roster.people ||= []; S.ready.roster=true; render(); }, err);
+  S.db.collection("months").onSnapshot(q=>{
+    S.months=q.docs.map(d=>d.id).sort(); S.ready.months=true;
+    if(!S.monthId || !S.months.includes(S.monthId)) selectMonth(S.months[S.months.length-1]||null); else render();
+  }, err);
+}
+function err(e){ console.warn(e); toast("Couldn't read saved data in this browser."); }
+function selectMonth(id){
+  if(S.unsubMonth){ S.unsubMonth(); S.unsubMonth=null; }
+  S.monthId=id; S.month=null;
+  if(!id){ render(); return; }
+  S.unsubMonth=S.db.doc("months/"+id).onSnapshot(s=>{ S.month = s.exists ? clone(s.data()) : null; if(S.month) S.month.id=id; render(); }, err);
+  render();
+}
+async function write(path, data, how="set"){
+  if(!S.db || !S.canEdit){ toast("Saving is unavailable in this browser."); return false; }
+  try{ await S.db.doc(path)[how](data); return true; }
+  catch(e){ if(e.code==="quota_exceeded"||e.code==="invalid_argument") toast("That didn't save: this browser's storage is full. Download a backup, then remove old months' uploads."); else toast("That didn't save. Download a backup so nothing is lost."); return false; }
+}
+const saveSettings = () => write("config/settings", S.settings);
+const saveRoster = () => write("config/roster", S.roster);
+const saveMonth = patch => write("months/"+S.monthId, patch, "update");
+
+/* ---------------- rendering ---------------- */
+let renderQueued=false;
+function render(){
+  const ae=document.activeElement;
+  if(ae && ae.closest && ae.closest("#app") && /INPUT|SELECT/.test(ae.tagName) && ae.type!=="file" && ae.type!=="checkbox"){ renderQueued=true; return; }
+  renderQueued=false;
+  if(!(S.ready.settings&&S.ready.roster&&S.ready.months)) return;
+  const app=$("#app"); const sy=window.scrollY;
+  const calc = S.month ? (S.month.closed && S.month.snapshot ? S.month.snapshot : compute(S.settings,S.roster,S.month)) : null;
+  if(calc && !(calc.unmatched instanceof Map)) calc.unmatched=new Map(Object.entries(calc.unmatched||{}).map(([k,v])=>[k,new Set(v)]));
+  app.innerHTML = headerHTML() + tabsHTML() + bodyHTML(calc);
+  window.scrollTo(0,sy);
+}
+document.addEventListener("focusout",()=>setTimeout(()=>{ if(renderQueued) render(); },0));
+
+function headerHTML(){
+  const m=S.month;
+  const opts=S.months.map(id=>`<option value="${id}" ${id===S.monthId?"selected":""}>${monthLabel(id)}</option>`).join("");
+  const ro = !S.canEdit || m?.closed;
+  return `<header class="top">
+    <div class="brand"><img alt="" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20x%3D%222%22%20y%3D%222%22%20width%3D%2260%22%20height%3D%2260%22%20rx%3D%2216%22%20fill%3D%22%23cfe3f8%22/%3E%3Crect%20x%3D%2214%22%20y%3D%2210%22%20width%3D%2228%22%20height%3D%2242%22%20rx%3D%226%22%20fill%3D%22%234a8fd4%22/%3E%3Crect%20x%3D%2219%22%20y%3D%2215%22%20width%3D%2218%22%20height%3D%228%22%20rx%3D%222%22%20fill%3D%22%23eaf3fc%22/%3E%3Cg%20fill%3D%22%23eaf3fc%22%3E%3Crect%20x%3D%2219%22%20y%3D%2227%22%20width%3D%225%22%20height%3D%225%22%20rx%3D%221.5%22/%3E%3Crect%20x%3D%2226%22%20y%3D%2227%22%20width%3D%225%22%20height%3D%225%22%20rx%3D%221.5%22/%3E%3Crect%20x%3D%2219%22%20y%3D%2234%22%20width%3D%225%22%20height%3D%225%22%20rx%3D%221.5%22/%3E%3Crect%20x%3D%2226%22%20y%3D%2234%22%20width%3D%225%22%20height%3D%225%22%20rx%3D%221.5%22/%3E%3Crect%20x%3D%2219%22%20y%3D%2241%22%20width%3D%225%22%20height%3D%225%22%20rx%3D%221.5%22/%3E%3Crect%20x%3D%2226%22%20y%3D%2241%22%20width%3D%225%22%20height%3D%225%22%20rx%3D%221.5%22/%3E%3C/g%3E%3Crect%20x%3D%2233%22%20y%3D%2227%22%20width%3D%224%22%20height%3D%2219%22%20rx%3D%221.5%22%20fill%3D%22%239cc6ef%22/%3E%3Ccircle%20cx%3D%2245%22%20cy%3D%2244%22%20r%3D%2212%22%20fill%3D%22%23f6c96b%22%20stroke%3D%22%23ffffff%22%20stroke-width%3D%223%22/%3E%3Cg%20stroke%3D%22%231d3557%22%20stroke-width%3D%222.2%22%20stroke-linecap%3D%22round%22%3E%3Cline%20x1%3D%2240.5%22%20y1%3D%2248.5%22%20x2%3D%2249.5%22%20y2%3D%2239.5%22/%3E%3C/g%3E%3Ccircle%20cx%3D%2241.5%22%20cy%3D%2240.5%22%20r%3D%222%22%20fill%3D%22%231d3557%22/%3E%3Ccircle%20cx%3D%2248.5%22%20cy%3D%2247.5%22%20r%3D%222%22%20fill%3D%22%231d3557%22/%3E%3C/svg%3E" width="48" height="48"><div class="brandline"><span class="eyebrow">Cruise Hub · Day One for Marketing Services</span><h1>Commission Calculator</h1></div></div>
+    <div class="monthbar">
+      ${S.months.length? `<div class="field"><label for="monthSel">Pay period</label><select id="monthSel">${opts}</select></div>`:""}
+      ${m? `<div class="field"><label for="mRate">USD to EGP</label><input id="mRate" type="number" step="0.01" style="width:110px" value="${esc(m.rate??S.settings.rate)}" ${ro?"disabled":""}></div>
+      <div class="field"><label for="mWd">Working days</label><input id="mWd" type="number" step="1" style="width:90px" value="${esc(m.workingDays??S.settings.workingDays)}" ${ro?"disabled":""}></div>
+      <span class="status ${m.closed?"closed":"draft"}">${m.closed?"Closed "+esc((m.closedAt||"").slice(0,10)):"Draft"}</span>`:""}
+      ${S.canEdit? `<button id="newMonth" class="ghost">New month</button>`:""}
+      <button id="backupData" class="ghost" title="Save everything to a file you keep">Download backup</button>
+      <button id="restoreData" class="ghost" title="Load a backup file into this browser">Restore backup</button>
+    </div>
+  </header>
+  ${DEMO? `<div class="notice info demo-banner"><div class="spread"><span><b>Demo mode.</b> Fictional team and figures for walkthroughs. Your real data is kept separately and is not touched here.</span><span class="row"><button id="resetDemo" class="ghost">Reset demo</button><a href="./" class="small">Open the real calculator</a></span></div></div>`:""}
+  ${S.dbMissing? `<div class="notice warn">This browser is blocking storage, so nothing you change will be kept. Allow site data for this page, or use a normal (not private) window.</div>`:""}
+  ${!S.canEdit && !S.dbMissing? `<div class="readonly-note">You can view results. Only editors can upload files or change rates.</div>`:""}`;
+}
+function tabsHTML(){
+  const t=[["fp","New rules · FP bonus"],["pax","Old rules · Pax commission"],["transfers","Bank Transfers"],["data","Uploads & adjustments"],["team","Team"],["rules","Rates & rules"]];
+  return `<nav class="tabs" role="tablist">${t.map(([k,l])=>`<button role="tab" data-tab="${k}" aria-selected="${S.tab===k}">${l}</button>`).join("")}</nav>`;
+}
+function bodyHTML(calc){
+  if(!S.months.length) return `<section class="panel"><div class="empty"><h2>No pay periods yet</h2><p>Start a month to upload that month's exports.</p>${S.canEdit?`<button class="primary" id="newMonth2">Start ${monthLabel(currentMonthId())}</button>`:""}</div></section>`;
+  if(!S.month) return `<section class="panel"><div class="empty">Loading ${monthLabel(S.monthId)}…</div></section>`;
+  if(S.tab==="data") return dataHTML(calc);
+  if(S.tab==="team") return teamHTML();
+  if(S.tab==="rules") return rulesHTML();
+  if(S.tab==="transfers") return transfersHTML(calc);
+  return resultsHTML(calc, S.tab==="pax"?"pax":"fp");
+}
+function currentMonthId(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`; }
+
+/* ---- results ---- */
+function resultsHTML(c, plan){
+  const m=S.month, loaded=Object.keys(m.sources||{}).length;
+  const um=[...c.unmatched.entries()];
+  const mine=c.rows.filter(r=>r.plan===plan).sort((a,b)=>b.total-a.total);
+  const others=c.rows.filter(r=>r.plan==="none").sort((a,b)=>b.total-a.total);
+  const sumOf=(rows,k)=>rows.reduce((a,r)=>a+(r[k]||0),0);
+  const chips=r=>r.flags.map(([k,t])=>`<span class="chip ${k}">${esc(t)}</span>`).join("");
+  const isPax=plan==="pax";
+  const cols = isPax
+    ? [["Person"],["Pax","r"],["Cancels","r"],["Final pax","r"],["USD / pax","r"],["Conv.","r"],["Attendance","r"],["CSAT","r"],["NPS","r"],["Eff. inbound","r"],["Level"],["Commission USD","r"],["Commission EGP","r"],["Insurance","r"],["Stipend","r"],["Bonus","r"],["Reviews","r"],["Total EGP","r"],["Check"]]
+    : [["Person"],["FP bookings","r"],["Inside / OV","r"],["Balcony / Suite","r"],["Conv.","r"],["Attendance","r"],["CSAT","r"],["Lead score","r"],["Tier"],["FP bonus USD","r"],["Milestones USD","r"],["Commission EGP","r"],["Insurance","r"],["Stipend","r"],["Bonus","r"],["Reviews","r"],["Total EGP","r"],["Check"]];
+  const n=cols.length;
+  const cells=r=> isPax
+    ? `<td class="r num">${r.pax}</td><td class="r num">${r.cancels}</td><td class="r num">${r.finalPax}</td><td class="r num">${usd(r.paxRate)}</td><td class="r num">${pct(r.conv)}</td><td class="r num">${r.ramp?'<span class="muted small">new</span>':pct(r.att)}</td><td class="r num">${r.csat==null?"-":fmt(r.csat,2)}</td><td class="r num">${pct(r.nps)}</td><td class="r num">${r.effInbound}</td><td>${esc(r.level)} <span class="muted small num">${r.mult.toFixed(3)}x</span></td><td class="r num">${usd(r.commUSD+r.owed)}</td>`
+    : `<td class="r num"><strong>${r.fpCount}</strong></td><td class="r num">${r.fpIO}</td><td class="r num">${r.fpBS}</td><td class="r num">${pct(r.conv)}</td><td class="r num">${r.ramp?'<span class="muted small">new</span>':pct(r.att)}</td><td class="r num">${r.csat==null?"-":fmt(r.csat,2)}</td><td class="r num">${pct(r.lead)}</td><td>${r.tierPaid?`Tier ${r.tierPaid}`:"-"}${r.tierPaid<r.tierEarned?` <span class="muted small">of ${r.tierEarned}</span>`:""}</td><td class="r num">${usd(r.commUSD+r.owed)}</td><td class="r num">${usd(r.msUSD)}</td>`;
+  const body=mine.map(r=>{ const open=S.open[r.name]; return `<tr class="clickable" data-open="${esc(r.name)}" aria-expanded="${!!open}">
+      <td><strong>${esc(r.name)}</strong><div class="muted small">${esc(r.role||"")}</div></td>${cells(r)}
+      <td class="r num">${egp(r.commEGP)}</td><td class="r num">${egp(r.insurance)}${r.policies?`<div class="muted small">${r.policies} polic${r.policies===1?"y":"ies"}</div>`:""}</td><td class="r num">${egp(r.stipend)}${r.days!=null?`<div class="muted small">${r.days} days</div>`:""}</td><td class="r num">${egp(r.bonus)}</td><td class="r num">${egp(r.reviews)}${r.reviewCount?`<div class="muted small">${r.reviewCount} × ${r.reviewRate}</div>`:""}</td><td class="r num"><strong>${egp(r.total)}</strong></td><td>${chips(r)}</td></tr>
+      ${open?`<tr class="detail"><td colspan="${n}">${workingHTML(r,c)}</td></tr>`:""}`; }).join("");
+  const planTotal=sumOf(mine,"total");
+  return `
+  ${!loaded && !m.closed? `<div class="notice info"><strong>No exports uploaded for ${monthLabel(m.id)} yet.</strong><span>Everyone shows stipends only until you add this month's reports.</span>${S.canEdit?`<div><button class="primary" data-tab="data">Upload exports</button></div>`:""}</div>`:""}
+  ${um.length && !m.closed? `<div class="notice warn"><strong>${um.length} name${um.length>1?"s":""} in your files match nobody on the team.</strong><span>Their numbers are not counted anywhere. Link each one to a person, or mark it as not a person.</span>
+    <div class="tablewrap"><table><thead><tr><th>Name in file</th><th>Found in</th><th>Link to</th><th></th></tr></thead><tbody>
+    ${um.map(([nm,set])=>`<tr><td><strong>${esc(nm)}</strong></td><td class="small">${esc([...set].join(", "))}</td>
+      <td><select data-linksel="${esc(nm)}" ${S.canEdit?"":"disabled"}><option value="">Choose person…</option>${S.roster.people.map(p=>`<option>${esc(p.name)}</option>`).join("")}</select></td>
+      <td><button class="ghost small" data-ignore="${esc(nm)}" ${S.canEdit?"":"disabled"}>Not a person</button></td></tr>`).join("")}
+    </tbody></table></div></div>`:""}
+  ${c.totals.attOn? `<div class="notice info"><span><strong>Attendance ${c.totals.attShadow?"trial month":"is applied"}.</strong> ${c.totals.attShadow? `Figures below are paid as if attendance didn't count. Under the new attendance rules this month would cost the team <strong>${usd(c.totals.attLossUSD||0)}</strong> (${egp((c.totals.attLossUSD||0)*c.rate)} EGP).` : "Below 90% attendance means no commission that month, and attendance caps the multiplier level."} Change this on Rates &amp; rules.</span></div>`:""}
+  <section class="kpis">
+    <div class="kpi lead"><span class="eyebrow">${isPax?"Old rules total":"New rules total"}</span><span class="v">${egp(planTotal)} EGP</span><span class="small muted">${mine.length} ${mine.length===1?"person":"people"} on this plan</span></div>
+    <div class="kpi"><span class="eyebrow">Commission on this plan</span><span class="v">${egp(sumOf(mine,"commEGP"))}</span><span class="small muted">at ${fmt(c.rate,2)} EGP per USD</span></div>
+    <div class="kpi"><span class="eyebrow">Stipends + bonuses on this plan</span><span class="v">${egp(sumOf(mine,"bonusTotal"))}</span><span class="small muted">${c.wd} working days</span></div>
+    <div class="kpi"><span class="eyebrow">Whole payroll, all plans</span><span class="v">${egp(c.totals.total)}</span><span class="small muted">${c.totals.paid} people paid</span></div>
+  </section>
+  <section class="panel">
+    <div class="spread"><div><h2>${isPax?"Old rules: pax commission":"New rules: FP bonus"} · ${monthLabel(m.id)}</h2>
+      <p class="small muted">${isPax?"Final pax × rate per pax × performance multiplier.":"FP bookings at the month's tier rate, one tier lower per missed standard, plus milestones."}</p></div>
+      <div class="row">
+        <button id="copyPay">Copy HR payroll</button>
+        ${S.downloads? `<button id="dlPay">Download payroll CSV</button><button id="dlDetail" class="ghost">Download full detail</button>`:""}
+        ${S.canEdit? (m.closed? `<button id="reopen" class="ghost">Reopen month</button>` : `<button id="closeMonth" class="primary">Close month</button>`):""}
+      </div></div>
+    ${S.confirmClose? `<div class="notice info"><strong>Close ${monthLabel(m.id)}?</strong><span>This freezes both plans' figures and carries deposits and milestones forward to next month. You can reopen it later.</span><div class="row"><button class="primary" id="confirmClose">Close month</button><button class="ghost" id="cancelClose">Cancel</button></div></div>`:""}
+    <div class="tablewrap"><table>
+      <thead><tr>${cols.map(([l,cl])=>`<th class="${cl||""}">${l}</th>`).join("")}</tr></thead>
+      <tbody>${body || `<tr><td colspan="${n}" class="empty">Nobody is on this plan. Change a person's plan on the Team tab.</td></tr>`}
+      ${mine.length?`<tr class="total"><td colspan="${n-7}">Total</td><td class="r num">${egp(sumOf(mine,"commEGP"))}</td><td class="r num">${egp(sumOf(mine,"insurance"))}</td><td class="r num">${egp(sumOf(mine,"stipend"))}</td><td class="r num">${egp(sumOf(mine,"bonus"))}</td><td class="r num">${egp(sumOf(mine,"reviews"))}</td><td class="r num">${egp(planTotal)}</td><td></td></tr>`:""}</tbody>
+    </table></div>
+    <p class="small muted">Select a row to see how each figure was worked out. Copy and download include everyone on both plans.</p>
+  </section>
+  ${others.length?`<details class="panel"><summary>Stipends and bonuses only · ${others.length} people · ${egp(sumOf(others,"total"))} EGP</summary>
+    <div class="tablewrap"><table><thead><tr><th>Person</th><th class="r">Insurance</th><th class="r">Stipend</th><th class="r">Bonus</th><th class="r">Reviews</th><th class="r">Total EGP</th></tr></thead><tbody>
+    ${others.map(r=>`<tr><td><strong>${esc(r.name)}</strong><div class="muted small">${esc(r.role||"")}</div></td><td class="r num">${egp(r.insurance)}</td><td class="r num">${egp(r.stipend)}</td><td class="r num">${egp(r.bonus)}</td><td class="r num">${egp(r.reviews)}</td><td class="r num"><strong>${egp(r.total)}</strong></td></tr>`).join("")}
+    </tbody></table></div></details>`:""}`;
+}
+function workingHTML(r,c){
+  const dl=pairs=>`<dl>${pairs.map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>`;
+  const S2=S.settings;
+  let plan="";
+  if(r.plan==="pax") plan=`<div><h4>Pax commission</h4>${dl([["Pax booked",r.pax],["Cancellations","- "+r.cancels],["Final pax",r.finalPax],["Rate per pax",usd(r.paxRate)],["Inbound (no missed)",r.inNM],["Outbound credit",`${r.outb} ÷ ${S2.pax.outboundPerCredit} = ${Math.floor(r.outb/S2.pax.outboundPerCredit)}`],["Effective inbound",r.effInbound],["Level earned",esc(r.levelEarned||r.level)],["Level paid",esc(r.level)+(r.attLoss&&!S.settings.attendance?.shadow?" (attendance)":"")],["Multiplier",r.mult.toFixed(3)+"x"],["Commission",r.override!=null?usd(r.override)+" (fixed)":`${r.finalPax} × ${usd(r.paxRate)} × ${r.mult.toFixed(3)} = ${usd(r.commUSD)}`]])}</div>`;
+  if(r.plan==="fp") plan=`<div><h4>FP bonus</h4>${dl([["Inside / Oceanview",r.fpIO+" × "+usd(r.fpRateIO)],["Balcony / Suite",r.fpBS+" × "+usd(r.fpRateBS)],["FP bookings counted",r.fpCount],["Rows not counted",r.fpExcluded||0],["Tier earned",r.tierEarned||"-"],["Standards missed",r.misses.length? esc(r.misses.join(", ")):"None"],["Tier paid",r.tierPaid||"-"],["FP bonus",r.unreported? "0 (unreported cancellation)" : usd(r.fpUSD)],["Deposits to date",`${r.depositsBefore} + ${r.deals} = ${r.depositsNow}`],["Milestones",usd(r.msUSD)]])}</div>`;
+  return `<div class="working">
+    <div><h4>Activity</h4>${dl([["Deals",r.deals],["Pax",r.pax],["Inbound incl. missed",r.inAll??"no data"],["Conversion",pct(r.conv)],["Attendance",r.ramp?"first 90 days, exempt":(r.att==null?"no data":pct(r.att))],["CSAT",r.csat==null?"no data":fmt(r.csat,2)],["NPS",r.nps==null?"no data":pct(r.nps)],["Lead score",r.lead==null?"no data":pct(r.lead)],["Cancellations",r.cancels]])}</div>
+    ${plan}
+    <div><h4>Payout</h4>${dl([["Commission USD",usd(r.commUSD)],["Milestones USD",usd(r.msUSD)],["Last month owed USD",usd(r.owed)],["× rate",fmt(c.rate,2)],["Commission EGP",egp(r.commEGP)],["Insurance",`${r.policies} × ${S2.bonus.insurance} = ${egp(r.insurance)}`],["Transport stipend",egp(r.stipend)+(r.days!=null?` (${r.days} of ${c.wd} days)`:"")],["Bonus incentive",egp(r.bonus)],["Reviews",`${r.reviewCount} × ${r.reviewRate} = ${egp(r.reviews)}`],["Total EGP","<strong>"+egp(r.total)+"</strong>"]])}</div>
+  </div>`;
+}
+
+function transfersHTML(c){
+  const m=S.month, ro=!S.canEdit||m.closed;
+  const rows=c.rows.slice().sort((a,b)=>(a.name>b.name?1:-1));
+  const fin=r=>r.final ?? r.total, ded=r=>r.deduct||0;
+  const T={earned:c.rows.reduce((a,r)=>a+r.total,0), ded:c.rows.reduce((a,r)=>a+ded(r),0), fin:c.rows.reduce((a,r)=>a+Math.max(0,fin(r)),0)};
+  const toPay=c.rows.filter(r=>fin(r)>0).length, negs=c.rows.filter(r=>fin(r)<0);
+  const methods=["","Instapay","Bank transfer","Cash","With salary"];
+  const planChip=p=>p==="fp"?`<span class="chip info">New</span>`:p==="pax"?`<span class="chip plain">Old</span>`:`<span class="chip plain">Bonus only</span>`;
+  return `
+  <section class="kpis">
+    <div class="kpi"><span class="eyebrow">Earned this month</span><span class="v">${egp(T.earned)}</span><span class="small muted">commission, stipends and bonuses</span></div>
+    <div class="kpi"><span class="eyebrow">Deductions</span><span class="v">${egp(T.ded)}</span><span class="small muted">${c.rows.filter(r=>ded(r)).length} people</span></div>
+    <div class="kpi lead"><span class="eyebrow">Total to transfer</span><span class="v">${egp(T.fin)} EGP</span><span class="small muted">${toPay} transfers</span></div>
+  </section>
+  ${negs.length?`<div class="notice warn"><strong>Deductions are larger than earnings for ${negs.map(r=>esc(r.name)).join(", ")}.</strong><span>Nothing is transferred to them this month. Add the remainder as a deduction next month, or settle it another way.</span></div>`:""}
+  <section class="panel">
+    <div class="spread"><div><h2>Bank Transfers · ${monthLabel(m.id)}</h2>
+      <p class="small muted">Everyone on both plans. Add anything to take off the final amount, such as an advance or an amount already paid, with a reason so the deduction can be explained later.</p></div>
+      <div class="row"><button id="copyPay">Copy transfer list</button>${S.downloads?`<button id="dlPay">Download Bank Transfers CSV</button>`:""}</div></div>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Western name</th><th>Arabic name</th><th>Plan</th><th class="r">Commission</th><th class="r">Stipend</th><th class="r">Insurance + bonus + reviews</th><th class="r">Earned</th><th class="r">Deduction EGP</th><th>Reason</th><th class="r">Final transfer EGP</th><th>Paid by</th></tr></thead>
+      <tbody>${rows.map(r=>{ const f=fin(r); return `<tr>
+        <td><strong>${esc(r.name)}</strong><div class="muted small">${esc(r.role||"")}</div></td><td dir="auto" lang="ar">${r.arabicName?esc(r.arabicName):'<span class="muted small">Add on Team tab</span>'}</td><td>${planChip(r.plan)}</td>
+        <td class="r num">${egp(r.commEGP)}</td><td class="r num">${egp(r.stipend)}</td><td class="r num">${egp(r.insurance+r.bonus+r.reviews)}</td>
+        <td class="r num">${egp(r.total)}</td>
+        <td class="r"><input type="number" step="1" min="0" class="w-num" data-inp="deduct" data-who="${esc(r.name)}" value="${esc(r.deduct||"")}" placeholder="0" ${ro?"disabled":""} aria-label="Deduction for ${esc(r.name)}"></td>
+        <td><input type="text" class="w-alias" data-inp="deductNote" data-who="${esc(r.name)}" value="${esc(r.deductNote||"")}" placeholder="e.g. advance 1 Oct" ${ro?"disabled":""} aria-label="Reason for ${esc(r.name)}"></td>
+        <td class="r num"><strong style="color:${f<0?"var(--bad)":"var(--ink)"}">${egp(f)}</strong></td>
+        <td><select data-inp="method" data-who="${esc(r.name)}" ${ro?"disabled":""} aria-label="Payment method for ${esc(r.name)}">${methods.map(x=>`<option value="${x}" ${x===(r.method||"")?"selected":""}>${x||"Choose…"}</option>`).join("")}</select></td></tr>`; }).join("")}
+      <tr class="total"><td colspan="6">Total</td><td class="r num">${egp(T.earned)}</td><td class="r num">${egp(T.ded)}</td><td></td><td class="r num">${egp(T.fin)}</td><td></td></tr></tbody>
+    </table></div>
+    ${m.closed?`<p class="small muted">This month is closed, so deductions are locked. Reopen it to change them.</p>`:""}
+  </section>`;
+}
+
+/* ---- uploads & adjustments ---- */
+function dataHTML(c){
+  const m=S.month, ro=!S.canEdit||m.closed;
+  const plansInUse=new Set(S.roster.people.map(p=>p.plan));
+  const cards=SOURCES.map(s=>{
+    const src=m.sources?.[s.key]; const rel = s.plan==="both" || plansInUse.has(s.plan);
+    return `<div class="src ${src?"loaded":""}">
+      <div class="head"><div><h3>${esc(s.label)}</h3><div class="used">${s.plan==="fp"?"FP plan":s.plan==="pax"?"Pax plan":"Both plans"}${rel?"":" · nobody on this plan"}</div></div>
+      ${src? `<span class="chip good">${src.rows.length} rows</span>`:`<span class="chip plain">Not uploaded</span>`}</div>
+      ${src? `<div class="small muted">${esc(src.file)} · ${esc((src.at||"").slice(0,10))}</div>`:""}
+      ${ro?"":`<div class="row"><label class="small"><input type="file" accept=".xlsx,.xls,.csv" data-file="${s.key}" style="max-width:100%"></label>${src?`<button class="ghost small danger" data-clear="${s.key}">Remove</button>`:""}</div>`}
+    </div>`;
+  }).join("");
+  const mp=S.pending;
+  const mapper = mp ? `<div class="mapper"><div class="spread"><h3>Match columns: ${esc(SOURCES.find(s=>s.key===mp.key).label)} · ${esc(mp.file)}</h3><span class="small muted">${mp.data.length} data rows</span></div>
+    ${mp.sheets.length>1? `<div class="field" style="max-width:280px"><label for="mpSheet">Sheet</label><select id="mpSheet">${mp.sheets.map(n=>`<option ${n===mp.sheet?"selected":""}>${esc(n)}</option>`).join("")}</select></div>`:""}
+    <div class="maprow">${SOURCES.find(s=>s.key===mp.key).fields.map(([f,label,,opt])=>`<div class="field"><label for="map_${f}">${esc(label)}${opt?" (optional)":""}</label><select id="map_${f}" data-map="${f}"><option value="">${opt?"Not in this file":"Choose column…"}</option>${mp.headers.map((h,i)=>`<option value="${i}" ${mp.map[f]===i?"selected":""}>${esc(h||"Column "+(i+1))}</option>`).join("")}</select></div>`).join("")}</div>
+    <div class="row"><button class="primary" id="mpSave">Save to ${monthLabel(m.id)}</button><button class="ghost" id="mpCancel">Cancel</button><span class="small muted">I guessed the columns from the headers. Check them before saving.</span></div></div>` : "";
+  const people=c.rows;
+  const adj=`<section class="panel"><div><h2>Month adjustments</h2><p class="small muted">Days worked prorates the transport stipend for joiners and leavers. Leave blank for a full month. Attendance % only needs typing if it isn't in the attendance upload or is wrong there (type 96 for 96%). Last month owed is in USD and is converted at this month's rate.</p></div>
+    <div class="tablewrap"><table><thead><tr><th>Person</th><th>Days worked</th><th>Attendance % (overrides upload)</th><th>Last month owed (USD)</th><th>Note</th></tr></thead><tbody>
+    ${people.map(r=>{ const i=m.inputs?.[r.name]||{}; return `<tr><td>${esc(r.name)}</td>
+      <td><input type="number" class="w-num" data-inp="days" data-who="${esc(r.name)}" value="${esc(i.days??"")}" placeholder="full" ${ro?"disabled":""}></td>
+      <td><input type="number" step="0.1" class="w-num" data-inp="att" data-who="${esc(r.name)}" value="${esc(i.att??"")}" placeholder="${r.att==null?"":(r.att*100).toFixed(1)}" ${ro?"disabled":""}></td>
+      <td><input type="number" step="0.01" class="w-num" data-inp="owed" data-who="${esc(r.name)}" value="${esc(i.owed??"")}" placeholder="0" ${ro?"disabled":""}></td>
+      <td><input type="text" data-inp="note" data-who="${esc(r.name)}" value="${esc(i.note??"")}" ${ro?"disabled":""}></td></tr>`; }).join("")}
+    </tbody></table></div></section>`;
+  return `<section class="panel"><div class="spread"><div><h2>Exports for ${monthLabel(m.id)}</h2><p class="small muted">Upload each report as it comes out of HubSpot, AiCall or the review export, in Excel or CSV. Uploading again replaces the earlier file.</p></div></div>
+    ${m.closed?`<div class="notice info">This month is closed. Reopen it on either plan tab to change files.</div>`:""}
+    ${mapper}<div class="sources">${cards}</div></section>${adj}`;
+}
+
+/* ---- team ---- */
+function teamHTML(){
+  const ro=!S.canEdit;
+  const ppl=S.roster.people;
+  const sel=(opts,val,attr)=>`<select ${attr} ${ro?"disabled":""}>${opts.map(([v,l])=>`<option value="${esc(v)}" ${v===val?"selected":""}>${esc(l)}</option>`).join("")}</select>`;
+  return `<section class="panel"><div class="spread"><div><h2>Team</h2><p class="small muted">Plan decides how commission is worked out. Other names lists every spelling the reports use, separated by commas, so a person is never zeroed by a typo. Fixed commission (USD) replaces the calculation: leave it blank to calculate, 0 for no commission.</p></div>${ro?"":`<button class="primary" id="addPerson">Add person</button>`}</div>
+  <div class="tablewrap"><table><thead><tr><th>Western name</th><th>Arabic name</th><th>Other names in reports</th><th>Role</th><th>Plan</th><th class="r">Stipend EGP</th><th class="r">Fixed commission USD</th><th>Higher review rate</th><th>Start date</th><th>Status</th><th>Last working day</th><th class="r">Deposits to date</th><th>$150 paid</th><th>$250 paid</th><th></th></tr></thead><tbody>
+  ${ppl.map((p,i)=>`<tr>
+    <td><input type="text" class="w-name" data-p="${i}" data-f="name" value="${esc(p.name)}" ${ro?"disabled":""}></td>
+    <td><input type="text" class="w-name" dir="auto" lang="ar" data-p="${i}" data-f="arabicName" value="${esc(p.arabicName||"")}" placeholder="الاسم بالعربي" ${ro?"disabled":""} aria-label="Arabic name"></td>
+    <td><input type="text" class="w-alias" data-p="${i}" data-f="aliases" value="${esc(p.aliases||"")}" placeholder="e.g. Bruno" ${ro?"disabled":""}></td>
+    <td>${sel(ROLES.map(r=>[r,r]),p.role,`data-p="${i}" data-f="role"`)}</td>
+    <td>${sel(Object.entries(PLANS),p.plan||"none",`data-p="${i}" data-f="plan"`)}</td>
+    <td><input type="number" class="w-num" data-p="${i}" data-f="stipend" value="${esc(p.stipend??"")}" ${ro?"disabled":""}></td>
+    <td><input type="number" step="0.01" class="w-num" data-p="${i}" data-f="override" value="${esc(p.override??"")}" placeholder="calculate" ${ro?"disabled":""}></td>
+    <td><input type="checkbox" data-p="${i}" data-f="higherRate" ${p.higherRate?"checked":""} ${ro?"disabled":""} aria-label="Higher review rate"></td>
+    <td><input type="date" data-p="${i}" data-f="startDate" value="${esc(p.startDate||"")}" ${ro?"disabled":""} aria-label="Start date"></td>
+    <td>${sel([["active","Active"],["left","Left"]],p.status||"active",`data-p="${i}" data-f="status"`)}</td>
+    <td><input type="date" data-p="${i}" data-f="lastDay" value="${esc(p.lastDay||"")}" ${ro?"disabled":""}></td>
+    <td><input type="number" class="w-num" data-p="${i}" data-f="depositsToDate" value="${esc(p.depositsToDate??"")}" ${ro?"disabled":""}></td>
+    <td><input type="checkbox" data-p="${i}" data-f="ms20Paid" ${p.ms20Paid?"checked":""} ${ro?"disabled":""} aria-label="20 deposits milestone paid"></td>
+    <td><input type="checkbox" data-p="${i}" data-f="ms25Paid" ${p.ms25Paid?"checked":""} ${ro?"disabled":""} aria-label="25 FP bookings milestone paid"></td>
+    <td>${ro?"":(S.confirmDel===i? `<button class="danger small" data-delyes="${i}">Remove</button>` : `<button class="ghost small" data-del="${i}" aria-label="Remove ${esc(p.name)}">✕</button>`)}</td></tr>`).join("") || `<tr><td colspan="15" class="empty">No one yet. Add your first person.</td></tr>`}
+  </tbody></table></div>
+  <p class="small muted">Deposits to date and the milestone ticks update automatically when you close a month.</p></section>`;
+}
+
+/* ---- rates & rules ---- */
+function rulesHTML(){
+  const st=S.settings, ro=!S.canEdit;
+  const n=(path,val,step="0.01",w="w-num")=>`<input type="number" step="${step}" class="${w}" data-set="${path}" value="${esc(val??"")}" ${ro?"disabled":""}>`;
+  return `<div class="grid2">
+  <section class="panel"><h2>Defaults for new months</h2>
+    <div class="row"><div class="field"><label>USD to EGP</label>${n("rate",st.rate)}</div><div class="field"><label>Working days</label>${n("workingDays",st.workingDays,"1")}</div></div>
+    <h3>Bonuses (EGP)</h3>
+    <div class="tablewrap"><table><tbody>
+      <tr><td>Insurance, per policy</td><td class="r">${n("bonus.insurance",st.bonus.insurance)}</td></tr>
+      <tr><td>Review, standard rate</td><td class="r">${n("bonus.reviewCM",st.bonus.reviewCM)}</td></tr>
+      <tr><td>Review, higher rate</td><td class="r">${n("bonus.reviewHigher",st.bonus.reviewHigher)}</td></tr>
+      <tr><td>Review, Service role</td><td class="r">${n("bonus.reviewService",st.bonus.reviewService)}</td></tr>
+      <tr><td>FP plan: any review under this many stars zeroes the month's review bonus</td><td class="r">${n("bonus.minStars",st.bonus.minStars,"0.5")}</td></tr>
+    </tbody></table></div>
+  </section>
+  <section class="panel"><h2>FP bonus plan</h2>
+    <div class="tablewrap"><table><thead><tr><th>Tier</th><th class="r">From FP bookings</th><th class="r">Inside / OV USD</th><th class="r">Balcony / Suite USD</th></tr></thead><tbody>
+    ${st.fp.tiers.map((t,i)=>`<tr><td>Tier ${i+1}</td><td class="r">${n(`fp.tiers.${i}.min`,t.min,"1")}</td><td class="r">${n(`fp.tiers.${i}.io`,t.io)}</td><td class="r">${n(`fp.tiers.${i}.bs`,t.bs)}</td></tr>`).join("")}
+    </tbody></table></div>
+    <div class="tablewrap"><table><tbody>
+      <tr><td>Conversion standard (deals ÷ inbound incl. missed)</td><td class="r">${n("fp.conv",st.fp.conv)}</td></tr>
+      <tr><td>CSAT standard</td><td class="r">${n("fp.csat",st.fp.csat)}</td></tr>
+      <tr><td>Lead score standard</td><td class="r">${n("fp.lead",st.fp.lead)}</td></tr>
+      <tr><td>Group size (cabins) that counts in the sailing month</td><td class="r">${n("fp.groupCabins",st.fp.groupCabins,"1")}</td></tr>
+      <tr><td>Milestone: 20 deposits to date (USD, once)</td><td class="r">${n("fp.ms20",st.fp.ms20)}</td></tr>
+      <tr><td>Milestone: 25 FP bookings in a month (USD, once)</td><td class="r">${n("fp.ms25",st.fp.ms25)}</td></tr>
+      <tr><td>Deal stage that counts</td><td class="r"><input type="text" data-set="fp.stage" value="${esc(st.fp.stage)}" ${ro?"disabled":""}></td></tr>
+      <tr><td>Treat missing CSAT, lead score or inbound data as met</td><td class="r"><input type="checkbox" data-setbool="fp.missingMet" ${st.fp.missingMet?"checked":""} ${ro?"disabled":""}></td></tr>
+    </tbody></table></div>
+    <p class="small muted">Each missed standard drops one tier. Every booking pays the month's tier rate. An unreported cancellation sets that month's FP bonus to 0; milestones and EGP bonuses still pay.</p>
+  </section>
+  <section class="panel"><h2>Attendance (Clause 4.2.12)</h2>
+    <div class="tablewrap"><table><tbody>
+      <tr><td>Attendance affects commission</td><td class="r"><input type="checkbox" data-setbool="attendance.enabled" ${st.attendance?.enabled?"checked":""} ${ro?"disabled":""}></td></tr>
+      <tr><td>Trial month: show the effect without changing pay</td><td class="r"><input type="checkbox" data-setbool="attendance.shadow" ${st.attendance?.shadow?"checked":""} ${ro?"disabled":""}></td></tr>
+      <tr><td>Below this, no commission that month (both plans)</td><td class="r">${n("attendance.gate",st.attendance?.gate)}</td></tr>
+      <tr><td>New joiners exempt for this many days</td><td class="r">${n("attendance.rampDays",st.attendance?.rampDays,"1")}</td></tr>
+    </tbody></table></div>
+    <div class="tablewrap"><table><thead><tr><th>Highest pax level allowed</th><th class="r">From attendance</th></tr></thead><tbody>
+    ${(st.attendance?.caps||[]).map((c,i)=>`<tr><td>${esc(c.level)}</td><td class="r">${n(`attendance.caps.${i}.min`,c.min)}</td></tr>`).join("")}
+    </tbody></table></div>
+    <p class="small muted">Attendance = scheduled hours less hours lost, divided by scheduled hours, with approved leave taken out. Upload it monthly from the attendance sheet. On the FP plan attendance only applies the 90% rule. Milestones, stipends, insurance, incentives and reviews still pay.</p>
+  </section>
+  <section class="panel"><h2>Pax commission plan</h2>
+    <div class="tablewrap"><table><thead><tr><th>Tier</th><th class="r">From final pax</th><th class="r">USD per pax</th></tr></thead><tbody>
+    ${st.pax.tiers.map((t,i)=>`<tr><td>Tier ${i+1}</td><td class="r">${n(`pax.tiers.${i}.min`,t.min,"1")}</td><td class="r">${n(`pax.tiers.${i}.rate`,t.rate)}</td></tr>`).join("")}
+    </tbody></table></div>
+    <div class="tablewrap"><table><thead><tr><th>Level</th><th class="r">Min conv.</th><th class="r">Min CSAT</th><th class="r">Min NPS</th><th class="r">Min inbound</th><th class="r">Multiplier</th></tr></thead><tbody>
+    ${st.pax.levels.map((L,i)=>`<tr><td>${esc(L.name)}</td><td class="r">${n(`pax.levels.${i}.conv`,L.conv)}</td><td class="r">${n(`pax.levels.${i}.csat`,L.csat)}</td><td class="r">${n(`pax.levels.${i}.nps`,L.nps)}</td><td class="r">${n(`pax.levels.${i}.inb`,L.inb,"1")}</td><td class="r">${n(`pax.levels.${i}.mult`,L.mult,"0.005")}</td></tr>`).join("")}
+    </tbody></table></div>
+    <div class="row"><span>Outbound calls per inbound credit</span>${n("pax.outboundPerCredit",st.pax.outboundPerCredit,"1")}</div>
+    <p class="small muted">Final pax = pax booked minus cancellations, never below zero. Cancellations are taken once only. Blank minimums are not tested. Missing CSAT or NPS fails a level that needs it.</p>
+  </section></div>`;
+}
+
+/* ---------------- uploads ---------------- */
+function readFile(file){
+  return new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>{ try{ res(XLSX.read(fr.result,{type:"array",cellDates:true})); }catch(e){ rej(e);} }; fr.onerror=rej; fr.readAsArrayBuffer(file); });
+}
+function sheetRows(wb,name){
+  const aoa=XLSX.utils.sheet_to_json(wb.Sheets[name],{header:1,raw:true,defval:""});
+  let h=aoa.findIndex(r=>r.filter(v=>String(v).trim()!=="").length>=2); if(h<0) h=0;
+  const headers=(aoa[h]||[]).map(v=>String(v).trim());
+  const data=aoa.slice(h+1).filter(r=>r.some(v=>String(v).trim()!==""));
+  return {headers,data};
+}
+function guessMap(src,headers){
+  const map={}, used=new Set(); const H=headers.map(norm);
+  for(const [f,,words] of src.fields){
+    let best=-1;
+    for(const w of words){ const i=H.findIndex((h,ix)=>!used.has(ix)&&h.includes(w)); if(i>=0){best=i;break;} }
+    if(best>=0){ map[f]=best; used.add(best); }
+  }
+  return map;
+}
+async function onFile(key,file){
+  if(!window.XLSX){ toast("The spreadsheet reader didn't load. Reload the page and try again."); return; }
+  try{
+    const wb=await readFile(file); const src=SOURCES.find(s=>s.key===key);
+    const hints=[norm(src.label), norm(src.label).split(" (")[0], ...(src.key==="trustpilot"?["trustpilot","trust pilot"]:[]), ...(src.key==="inboundNoMissed"?["no missed"]:[]), ...(src.key==="inboundAll"?["inbound all"]:[])];
+    const sheet=wb.SheetNames.find(n=>hints.some(h=>h && norm(n).includes(h))) || wb.SheetNames.find(n=>hints.some(h=>h && h.includes(norm(n)) && norm(n).length>2)) || wb.SheetNames[0];
+    const {headers,data}=sheetRows(wb,sheet);
+    S.pending={key,file:file.name,wb,sheets:wb.SheetNames,sheet,headers,data,map:guessMap(src,headers)};
+    render();
+  }catch(e){ toast("That file couldn't be read. Save it as .xlsx or .csv and try again."); }
+}
+async function savePending(){
+  const mp=S.pending, src=SOURCES.find(s=>s.key===mp.key);
+  for(const [f,label,,opt] of src.fields) if(!opt && mp.map[f]==null){ toast(`Choose the column for ${label}.`); return; }
+  const dateF=new Set(["fpDate","sail"]);
+  const rows=mp.data.map(r=>{ const o={}; for(const [f] of src.fields){ const i=mp.map[f]; if(i==null) continue; let v=r[i]; if(dateF.has(f)) v=isoDate(v); else if(v instanceof Date) v=isoDate(v); else v=(typeof v==="string")? v.trim() : v; o[f]=v; } return o; })
+    .filter(o=>norm(o.agent??o.owner) && !/^(total|grand total|sum)$/i.test(String(o.agent??o.owner).trim()));
+  const ok=await saveMonth({sources:{[mp.key]:{file:mp.file,at:new Date().toISOString(),label:src.label,rows}}});
+  if(ok){ S.pending=null; toast(`${src.label}: ${rows.length} rows saved`); render(); }
+}
+
+/* ---------------- exports ---------------- */
+function currentCalc(){ return S.month.closed && S.month.snapshot ? S.month.snapshot : compute(S.settings,S.roster,S.month); }
+function csv(rows){ return rows.map(r=>r.map(v=>{ const s=String(v??""); return /[",\n]/.test(s)?`"${s.replace(/"/g,'""')}"`:s; }).join(",")).join("\r\n"); }
+function payrollRows(c){ const f=r=>r.final??r.total; const list=c.rows.filter(r=>r.total>0||r.deduct); return [["Western name","Arabic name","Role","Plan","Commission EGP","Insurance EGP","Transport EGP","Bonus EGP","Reviews EGP","Earned EGP","Deduction EGP","Deduction reason","Final transfer EGP","Paid by"], ...list.map(r=>[r.name,r.arabicName||"",r.role,PLANS[r.plan],Math.round(r.commEGP),r.insurance,r.stipend,r.bonus,r.reviews,Math.round(r.total),r.deduct||0,r.deductNote||"",Math.round(Math.max(0,f(r))),r.method||""]), ["TOTAL","","","",Math.round(c.totals.commEGP),c.totals.insurance,c.totals.stipend,c.totals.extra,c.totals.reviews,Math.round(c.totals.total),c.rows.reduce((a,r)=>a+(r.deduct||0),0),"",Math.round(c.rows.reduce((a,r)=>a+Math.max(0,f(r)),0)),""]]; }
+function detailRows(c){ return [["Western name","Arabic name","Role","Plan","Deals","Pax","Final pax","FP bookings","Inbound incl missed","Conversion","Attendance","CSAT","NPS","Lead score","Cancellations","Level / tier paid","Multiplier","Commission USD","Milestones USD","Owed USD","Rate","Commission EGP","Insurance","Stipend","Bonus","Reviews","Total EGP","Deduction EGP","Deduction reason","Final transfer EGP","Paid by","Checks"],
+  ...c.rows.map(r=>[r.name,r.arabicName||"",r.role,PLANS[r.plan],r.deals,r.pax,r.finalPax??"",r.fpCount??"",r.inAll??"",r.conv==null?"":(r.conv*100).toFixed(1)+"%",r.att==null?"":(r.att*100).toFixed(1)+"%",r.csat??"",r.nps==null?"":(r.nps*100).toFixed(1)+"%",r.lead==null?"":(r.lead*100).toFixed(1)+"%",r.cancels,r.plan==="pax"?r.level:r.plan==="fp"?"Tier "+r.tierPaid:"",r.mult??"",r.commUSD.toFixed(2),r.msUSD,r.owed,c.rate,r.commEGP.toFixed(2),r.insurance,r.stipend,r.bonus,r.reviews,r.total.toFixed(2),r.deduct||0,r.deductNote||"",(r.final??r.total).toFixed(2),r.method||"",r.flags.map(f=>f[1]).join("; ")])]; }
+async function download(name,rows){
+  try{ await S.downloads.save({filename:name,data:new Blob(["﻿"+csv(rows)],{type:"text/csv"})}); }
+  catch(e){ if(e.code!=="declined") toast("The download didn't start. Use Copy HR payroll instead."); }
+}
+
+/* ---------------- events ---------------- */
+function setPath(obj,path,val){ const k=path.split("."); let o=obj; for(let i=0;i<k.length-1;i++) o=o[k[i]]; o[k[k.length-1]]=val; }
+document.addEventListener("click", async e=>{
+  const t=e.target.closest("button,tr[data-open]"); if(!t) return;
+  if(t.dataset.tab){ S.tab=t.dataset.tab; try{localStorage.setItem("chcc.tab",S.tab);}catch(_){} render(); return; }
+  if(t.dataset.open!=null){ S.open[t.dataset.open]=!S.open[t.dataset.open]; render(); return; }
+  if(t.id==="newMonth"||t.id==="newMonth2"){
+    const id = S.months.length ? nextMonthId(S.months[S.months.length-1]) : currentMonthId();
+    const prev = S.month;
+    if(await write("months/"+id,{id,rate:prev?.rate??S.settings.rate,workingDays:S.settings.workingDays,sources:{},inputs:{},ignored:prev?.ignored||[],closed:false})){ selectMonth(id); toast(monthLabel(id)+" started"); }
+    return;
+  }
+  if(t.id==="resetDemo"){ if(confirm("Put the demo back to its starting figures?")){ try{ localStorage.removeItem(LS_KEY); }catch(_){} location.reload(); } return; }
+  if(t.id==="backupData"){ saveFile(`cruisehub-commission-backup-${new Date().toISOString().slice(0,10)}.json`, new Blob([LocalStore.exportJSON()],{type:"application/json"})); toast("Backup downloaded. Keep it somewhere safe."); return; }
+  if(t.id==="restoreData"){ $("#restoreFile").click(); return; }
+  if(t.dataset.clear){ await saveMonth({sources:{[t.dataset.clear]:{"__delete__":true}}}); return; }
+  if(t.id==="mpCancel"){ S.pending=null; render(); return; }
+  if(t.id==="mpSave"){ savePending(); return; }
+  if(t.dataset.ignore){ const ig=[...(S.month.ignored||[]),t.dataset.ignore]; await saveMonth({ignored:ig}); return; }
+  if(t.id==="addPerson"){ S.roster.people.push({name:"New person",aliases:"",role:"Cruise Manager",plan:"fp",stipend:2000,status:"active"}); await saveRoster(); return; }
+  if(t.dataset.del!=null){ S.confirmDel=+t.dataset.del; render(); return; }
+  if(t.dataset.delyes!=null){ S.roster.people.splice(+t.dataset.delyes,1); S.confirmDel=null; await saveRoster(); return; }
+  if(t.id==="copyPay"){ const rows=payrollRows(currentCalc()).map(r=>r.join("\t")).join("\n"); try{ await navigator.clipboard.writeText(rows); toast("Transfer list copied. Paste it into Sheets or an email."); }catch(_){ toast("Copy isn't allowed here. Use Download payroll CSV."); } return; }
+  if(t.id==="dlPay"){ download(`CruiseHub_${S.monthId}_Bank_Transfers.csv`,payrollRows(currentCalc())); return; }
+  if(t.id==="dlDetail"){ download(`CruiseHub_${S.monthId}_Commission_Detail.csv`,detailRows(currentCalc())); return; }
+  if(t.id==="closeMonth"){ S.confirmClose=true; render(); return; }
+  if(t.id==="cancelClose"){ S.confirmClose=false; render(); return; }
+  if(t.id==="confirmClose"){
+    const c=compute(S.settings,S.roster,S.month); const effects={};
+    for(const r of c.rows){ if(r.plan!=="fp") continue; const p=S.roster.people.find(x=>x.name===r.name); if(!p) continue;
+      effects[p.name]={depositsToDate:p.depositsToDate??0,ms20Paid:!!p.ms20Paid,ms25Paid:!!p.ms25Paid};
+      p.depositsToDate=r.depositsNow; if(r.ms20) p.ms20Paid=true; if(r.ms25) p.ms25Paid=true; }
+    const snap={...c, unmatched:Object.fromEntries([...c.unmatched].map(([k,v])=>[k,[...v]]))};
+    if(await saveMonth({closed:true,closedAt:new Date().toISOString(),snapshot:snap,closeEffects:effects})){ await saveRoster(); S.confirmClose=false; toast(monthLabel(S.monthId)+" closed"); }
+    return;
+  }
+  if(t.id==="reopen"){
+    const eff=S.month.closeEffects||{}; for(const [n,v] of Object.entries(eff)){ const p=S.roster.people.find(x=>x.name===n); if(p) Object.assign(p,v); }
+    if(await saveMonth({closed:false,snapshot:{"__delete__":true},closeEffects:{"__delete__":true}})){ await saveRoster(); toast("Month reopened"); }
+    return;
+  }
+});
+document.addEventListener("change", async e=>{
+  const t=e.target;
+  if(t.id==="restoreFile"){ const f=t.files[0]; t.value=""; if(!f) return;
+    try{ const text=await f.text(); if(LocalStore.hasData() && !confirm("Replace everything in this browser with this backup? Download a backup of the current data first if you need it.")) return;
+      const r=LocalStore.importJSON(text); S.pending=null; toast(`Restored ${r.people} people and ${r.months} month${r.months===1?"":"s"}`); }
+    catch(err){ toast("That file isn't a backup from this calculator."); }
+    return; }
+  if(t.id==="monthSel"){ S.pending=null; selectMonth(t.value); return; }
+  if(t.id==="mRate"){ await saveMonth({rate:num(t.value)}); return; }
+  if(t.id==="mWd"){ await saveMonth({workingDays:num(t.value)}); return; }
+  if(t.dataset.file){ const f=t.files[0]; if(f) onFile(t.dataset.file,f); return; }
+  if(t.id==="mpSheet"){ const mp=S.pending; const {headers,data}=sheetRows(mp.wb,t.value); Object.assign(mp,{sheet:t.value,headers,data,map:guessMap(SOURCES.find(s=>s.key===mp.key),headers)}); render(); return; }
+  if(t.dataset.map){ S.pending.map[t.dataset.map]= t.value===""? null : +t.value; return; }
+  if(t.dataset.linksel){ if(!t.value) return; const p=S.roster.people.find(x=>x.name===t.value); const al=(p.aliases||"").split(",").map(s=>s.trim()).filter(Boolean); al.push(t.dataset.linksel); p.aliases=al.join(", "); if(await saveRoster()) toast(`${t.dataset.linksel} now counts for ${p.name}`); return; }
+  if(t.dataset.inp){ const who=t.dataset.who, k=t.dataset.inp; const v = ["note","deductNote","method"].includes(k) ? t.value : num(t.value); await saveMonth({inputs:{[who]:{[k]:v}}}); return; }
+  if(t.dataset.p!=null){ const p=S.roster.people[+t.dataset.p], f=t.dataset.f;
+    let v = t.type==="checkbox" ? t.checked : t.value;
+    if(["stipend","depositsToDate"].includes(f)) v=num(v); if(f==="override") v= t.value===""? null : num(v);
+    if(f==="name"){ const old=p.name; v=v.trim(); if(!v) return; if(S.month?.inputs?.[old] && !S.month.closed){ await saveMonth({inputs:{[v]:S.month.inputs[old],[old]:{"__delete__":true}}}); } }
+    p[f]=v; await saveRoster(); return; }
+  if(t.dataset.set){ const v = t.type==="number" ? (t.value===""? null : num(t.value)) : t.value; setPath(S.settings,t.dataset.set,v); await saveSettings(); return; }
+  if(t.dataset.setbool){ setPath(S.settings,t.dataset.setbool,t.checked); await saveSettings(); return; }
+});
+
+init();
+</script>
+</body>
+</html>
