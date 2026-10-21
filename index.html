@@ -667,7 +667,7 @@ function summaryHTML(c){
       <div class="sum-card"><span class="l">Avg conversion</span><span class="v num">${inb? Math.round(deals/inb*100)+"%" : "-"}</span><span class="s">${fmt(deals)} deals from ${fmt(inb)} calls</span></div>
     </div>
     <div class="sum-split">
-      <div class="spread"><strong>Variable pay by plan</strong><span class="small muted">${egp(T)} EGP across ${c.rows.length} people</span></div>
+      <div class="spread"><strong>Where variable pay goes</strong><span class="small muted">${egp(T)} EGP across ${c.rows.length} people</span></div>
       <div class="bar" role="img" aria-label="Old rules ${Math.round(share(tOld))}%, new rules ${Math.round(share(tNew))}%, bonuses only ${Math.round(share(tBon))}%"><span class="c-old" style="width:${share(tOld)}%"></span><span class="c-new" style="width:${share(tNew)}%"></span><span class="c-bon" style="width:${share(tBon)}%"></span></div>
       <div class="sum-legend"><span><span class="dot c-old"></span>Old rules <b>${egp(tOld)}</b> <span class="muted">${Math.round(share(tOld))}%</span></span><span><span class="dot c-new"></span>New rules <b>${egp(tNew)}</b> <span class="muted">${Math.round(share(tNew))}%</span></span><span><span class="dot c-bon"></span>Bonuses only <b>${egp(tBon)}</b> <span class="muted">${Math.round(share(tBon))}%</span></span></div>
     </div>
