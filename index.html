@@ -76,6 +76,7 @@ table{border-collapse:collapse;width:100%;font-size:.86rem}
 th,td{padding:7px 10px;text-align:left;border-bottom:1px solid #eceef1;white-space:nowrap;vertical-align:middle}
 th{font-size:.78rem;color:#3c4652;background:#f4f5f7;font-weight:600;position:sticky;top:0;border-bottom:1px solid var(--line-2)}
 td.r,th.r{text-align:right}
+td.c,th.c{text-align:center}
 td.num,td .num{font-variant-numeric:tabular-nums}
 tbody tr:nth-child(even) td{background:#fafbfc}
 tbody tr:last-child td{border-bottom:none}
@@ -118,6 +119,15 @@ details summary{cursor:pointer;font-weight:600;color:var(--brand)}
 details.panel:not([open]){gap:0}
 a{color:var(--accent)}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+.dash-title{background:var(--brand);color:#fff;text-align:center;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:10px 12px;font-size:1rem;border:1px solid var(--brand)}
+.dash-kpi{border-collapse:collapse;width:100%}
+.dash-kpi th{background:#0f7c78;color:#fff;text-align:center;white-space:normal;font-size:.82rem;padding:8px 12px;border:1px solid #0b5f5c;position:static;line-height:1.2}
+.dash-kpi td{background:#f4f5f7;text-align:center;font-size:1.25rem;font-weight:700;padding:12px 14px;border:1px solid #c9ced5;font-variant-numeric:tabular-nums}
+.dash-table th{background:var(--brand);color:#fff;text-align:center;white-space:normal;line-height:1.2;border:1px solid #23466f;font-size:.8rem;padding:8px 9px}
+.dash-table td{border:1px solid #e2e5e9}
+.dash-table tr.grp td{background:#e9eef4!important;font-weight:700;color:var(--brand);text-transform:uppercase;font-size:.76rem;letter-spacing:.04em}
+.dash-table td.notes{white-space:normal;min-width:220px}
+.dash-table td.notes .chip{white-space:normal;margin:1px 3px 1px 0}
 .demo-banner{border-color:#ecd9a8!important;border-left-color:#d49a1a!important;background:#fffaf0!important}
 @media print{header.top,nav.tabs{display:none}}
 </style>
@@ -204,7 +214,7 @@ function toast(msg){ const t=$("#toast"); t.textContent=msg; t.hidden=false; cle
 
 /* ---------------- state ---------------- */
 const S = { db:null, canEdit:false, downloads:null, settings:null, roster:null, months:[], monthId:null, month:null,
-  tab: (()=>{ try{const v=localStorage.getItem("chcc.tab"); return (!v||v==="results")?"fp":v;}catch(e){return "fp";} })(),
+  tab: (()=>{ try{const v=localStorage.getItem("chcc.tab"); return (!v||v==="results")?"summary":v;}catch(e){return "summary";} })(),
   open:{}, pending:null, ready:{settings:false,roster:false,months:false}, unsubMonth:null, dbMissing:false };
 
 function personMap(roster){
@@ -462,7 +472,7 @@ function headerHTML(){
   ${!S.canEdit && !S.dbMissing? `<div class="readonly-note">You can view results. Only editors can upload files or change rates.</div>`:""}`;
 }
 function tabsHTML(){
-  const t=[["fp","New rules · FP bonus"],["pax","Old rules · Pax commission"],["transfers","Bank Transfers"],["reviews","Reviews"],["insurance","Insurance sold"],["data","Uploads & adjustments"],["team","Team"],["rules","Rates & rules"]];
+  const t=[["summary","Summary"],["fp","New rules · FP bonus"],["pax","Old rules · Pax commission"],["transfers","Bank Transfers"],["reviews","Reviews"],["insurance","Insurance sold"],["data","Uploads & adjustments"],["team","Team"],["rules","Rates & rules"]];
   return `<nav class="tabs" role="tablist">${t.map(([k,l])=>`<button role="tab" data-tab="${k}" aria-selected="${S.tab===k}">${l}</button>`).join("")}</nav>`;
 }
 function bodyHTML(calc){
@@ -474,6 +484,7 @@ function bodyHTML(calc){
   if(S.tab==="transfers") return transfersHTML(calc);
   if(S.tab==="reviews") return reviewsHTML(calc);
   if(S.tab==="insurance") return insuranceHTML(calc);
+  if(S.tab==="summary") return summaryHTML(calc);
   return resultsHTML(calc, S.tab==="pax"?"pax":"fp");
 }
 function currentMonthId(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`; }
@@ -580,6 +591,53 @@ function transfersHTML(c){
       <tr class="total"><td colspan="6">Total</td><td class="r num">${egp(T.earned)}</td><td class="r num">${egp(T.ded)}</td><td></td><td class="r num">${egp(T.fin)}</td><td></td></tr></tbody>
     </table></div>
     ${m.closed?`<p class="small muted">This month is closed, so deductions are locked. Reopen it to change them.</p>`:""}
+  </section>`;
+}
+
+/* ---- summary dashboard ---- */
+function summaryHTML(c){
+  const m=S.month;
+  const sales=c.rows.filter(r=>r.plan==="pax"||r.plan==="fp");
+  const pax=c.rows.filter(r=>r.plan==="pax"), fp=c.rows.filter(r=>r.plan==="fp"), other=c.rows.filter(r=>r.plan==="none");
+  const deals=sales.reduce((a,r)=>a+(r.deals||0),0), inb=sales.reduce((a,r)=>a+(r.inAll||0),0);
+  const netUSD=r=>(r.commUSD||0)+(r.msUSD||0)+(r.owed||0);
+  const totUSD=c.rows.reduce((a,r)=>a+netUSD(r),0);
+  const totPax=pax.reduce((a,r)=>a+(r.finalPax||0),0), totFP=fp.reduce((a,r)=>a+(r.fpCount||0),0);
+  const notes=r=>r.flags.map(([k,t])=>`<span class="chip ${k}">${esc(t)}</span>`).join("");
+  const row=r=>{ const isPax=r.plan==="pax", isFP=r.plan==="fp";
+    return `<tr><td><strong>${esc(r.name)}</strong><div class="muted small">${esc(r.role||"")}</div></td>
+      <td class="c">${isFP?`<span class="chip info">New</span>`:isPax?`<span class="chip plain">Old</span>`:`<span class="chip plain">Bonus only</span>`}</td>
+      <td class="r num">${r.inAll==null?"":fmt(r.inAll)}</td><td class="r num">${(isPax||isFP)?fmt(r.deals):""}</td>
+      <td class="r num">${r.conv==null?"":pct(r.conv)}</td>
+      <td class="r num">${isPax?fmt(r.finalPax):isFP?`${fmt(r.fpCount)} <span class="muted small">FP</span>`:""}</td>
+      <td class="r num">${isPax?usd(r.paxRate):isFP?`Tier ${r.tierPaid||0}`:""}</td>
+      <td class="r num">${isPax?fmt(r.mult,3):""}</td>
+      <td class="r num">${isPax?usd(r.baseUSD??(r.finalPax||0)*(r.paxRate||0)):isFP?usd(r.fpUSD):""}</td>
+      <td class="r num">${egp(r.bonusTotal)}</td>
+      <td class="r num">${(isPax||isFP||r.owed)?usd(netUSD(r)):""}</td>
+      <td class="r num"><strong>${egp(r.total)}</strong></td>
+      <td class="notes">${notes(r)}</td></tr>`; };
+  const grp=(label,list)=> list.length? `<tr class="grp"><td colspan="13">${label} · ${list.length} ${list.length===1?"person":"people"}</td></tr>${list.slice().sort((a,b)=>b.total-a.total).map(row).join("")}` : "";
+  const sumK=(list,f)=>list.reduce((a,r)=>a+(f(r)||0),0);
+  return `
+  <section class="panel" style="gap:14px">
+    <div class="dash-title">Commission Summary Dashboard · ${esc(monthLabel(m.id))}</div>
+    <div class="tablewrap" style="border:none"><table class="dash-kpi">
+      <thead><tr><th>Sales Agents Active</th><th>Total Pax (After Cancel)</th><th>FP Bookings</th><th>Avg Conversion</th><th>Total Com. (USD)</th><th>Total Com. (EGP)</th><th>USD → EGP Rate</th></tr></thead>
+      <tbody><tr><td>${sales.length}</td><td>${fmt(totPax)}</td><td>${fmt(totFP)}</td><td>${inb? Math.round(deals/inb*100)+"%" : "-"}</td><td>${usd(totUSD)}</td><td>${egp(c.totals.total)} EGP</td><td>${fmt(c.rate,2)}</td></tr></tbody>
+    </table></div>
+    <div class="tablewrap"><table class="dash-table">
+      <thead><tr><th>Agent Name</th><th>Plan</th><th>Inbound Calls</th><th>Deals</th><th>Conversion</th><th>Pax (After Cancel) / FP</th><th>Rate/Pax / Tier</th><th>Multiplier</th><th>Base Com (USD)</th><th>Total Bonuses (EGP)</th><th>Net Com (USD)</th><th>Com (EGP)</th><th>Notes</th></tr></thead>
+      <tbody>
+        ${grp("Old rules · Pax commission",pax)}
+        ${grp("New rules · FP bonus",fp)}
+        ${grp("Bonuses only",other)}
+        <tr class="total"><td colspan="2">Total</td><td class="r num">${fmt(inb)}</td><td class="r num">${fmt(deals)}</td><td class="r num">${inb?pct(deals/inb):""}</td>
+          <td class="r num">${fmt(totPax)} / ${fmt(totFP)} FP</td><td></td><td></td>
+          <td class="r num">${usd(sumK(pax,r=>r.baseUSD??(r.finalPax||0)*(r.paxRate||0))+sumK(fp,r=>r.fpUSD))}</td>
+          <td class="r num">${egp(c.totals.bonus)}</td><td class="r num">${usd(totUSD)}</td><td class="r num">${egp(c.totals.total)}</td><td></td></tr>
+      </tbody></table></div>
+    <p class="small muted">Base Com is before the multiplier on the old rules, and the FP bonus on the new rules. Net Com adds the multiplier, milestones and any amount owed from last month. Com (EGP) is Net Com converted at ${fmt(c.rate,2)}, plus all bonuses. Avg Conversion is total deals ÷ total inbound calls for everyone on a commission plan.</p>
   </section>`;
 }
 
