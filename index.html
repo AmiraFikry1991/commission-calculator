@@ -526,8 +526,8 @@ function resultsHTML(c, plan){
   const chips=r=>r.flags.map(([k,t])=>`<span class="chip ${k}">${esc(t)}</span>`).join("");
   const isPax=plan==="pax";
   const cols = isPax
-    ? [["Person"],["Pax","r"],["Cancels","r"],["Final pax","r"],["USD / pax","r"],["Conv.","r"],["Attendance","r"],["CSAT","r"],["NPS","r"],["Eff. inbound","r"],["Level"],["Commission USD","r"],["Commission EGP","r"],["Insurance","r"],["Stipend","r"],["Bonus","r"],["Reviews","r"],["Total EGP","r"],["Check"]]
-    : [["Person"],["FP bookings","r"],["Inside / OV","r"],["Balcony / Suite","r"],["Conv.","r"],["Attendance","r"],["CSAT","r"],["Lead score","r"],["Tier"],["FP bonus USD","r"],["Milestones USD","r"],["Commission EGP","r"],["Insurance","r"],["Stipend","r"],["Bonus","r"],["Reviews","r"],["Total EGP","r"],["Check"]];
+    ? [["Person"],["Pax","r"],["Cancels","r"],["Final pax","r"],["USD / pax","r"],["Conv.","r"],["Attendance","r"],["CSAT","r"],["NPS","r"],["Eff. inbound","r"],["Level"],["Commission USD","r"],["Commission EGP","r"],["Insurance","r"],["Transportation","r"],["Bonus","r"],["Reviews","r"],["Total EGP","r"],["Check"]]
+    : [["Person"],["FP bookings","r"],["Inside / OV","r"],["Balcony / Suite","r"],["Conv.","r"],["Attendance","r"],["CSAT","r"],["Lead score","r"],["Tier"],["FP bonus USD","r"],["Milestones USD","r"],["Commission EGP","r"],["Insurance","r"],["Transportation","r"],["Bonus","r"],["Reviews","r"],["Total EGP","r"],["Check"]];
   const n=cols.length;
   const cells=r=> isPax
     ? `<td class="r num">${r.pax}</td><td class="r num">${r.cancels}</td><td class="r num">${r.finalPax}</td><td class="r num">${usd(r.paxRate)}</td><td class="r num">${pct(r.conv)}</td><td class="r num">${r.ramp?'<span class="muted small">new</span>':pct(r.att)}</td><td class="r num">${r.csat==null?"-":fmt(r.csat,2)}</td><td class="r num">${pct(r.nps)}</td><td class="r num">${r.effInbound}</td><td>${esc(r.level)} <span class="muted small num">${r.mult.toFixed(3)}x</span></td><td class="r num">${usd(r.commUSD+r.owed)}</td>`
@@ -538,7 +538,7 @@ function resultsHTML(c, plan){
       ${open?`<tr class="detail"><td colspan="${n}">${workingHTML(r,c)}</td></tr>`:""}`; }).join("");
   const planTotal=sumOf(mine,"total");
   return `
-  ${!loaded && !m.closed? `<div class="notice info"><strong>No exports uploaded for ${monthLabel(m.id)} yet.</strong><span>Everyone shows stipends only until you add this month's reports.</span>${S.canEdit?`<div><button class="primary" data-tab="data">Upload exports</button></div>`:""}</div>`:""}
+  ${!loaded && !m.closed? `<div class="notice info"><strong>No exports uploaded for ${monthLabel(m.id)} yet.</strong><span>Everyone shows transportation allowance only until you add this month's reports.</span>${S.canEdit?`<div><button class="primary" data-tab="data">Upload exports</button></div>`:""}</div>`:""}
   ${um.length && !m.closed? `<div class="notice warn"><strong>${um.length} name${um.length>1?"s":""} in your files match nobody on the team.</strong><span>Their numbers are not counted anywhere. Link each one to a person, or mark it as not a person.</span>
     <div class="tablewrap"><table><thead><tr><th>Name in file</th><th>Found in</th><th>Link to</th><th></th></tr></thead><tbody>
     ${um.map(([nm,set])=>`<tr><td><strong>${esc(nm)}</strong></td><td class="small">${esc([...set].join(", "))}</td>
@@ -549,7 +549,7 @@ function resultsHTML(c, plan){
   <section class="kpis">
     <div class="kpi lead"><span class="eyebrow">${isPax?"Old rules total":"New rules total"}</span><span class="v">${egp(planTotal)} EGP</span><span class="small muted">${mine.length} ${mine.length===1?"person":"people"} on this plan</span></div>
     <div class="kpi"><span class="eyebrow">Commission on this plan</span><span class="v">${egp(sumOf(mine,"commEGP"))}</span><span class="small muted">at ${fmt(c.rate,2)} EGP per USD</span></div>
-    <div class="kpi"><span class="eyebrow">Stipends + bonuses on this plan</span><span class="v">${egp(sumOf(mine,"bonusTotal"))}</span><span class="small muted">${c.wd} working days</span></div>
+    <div class="kpi"><span class="eyebrow">Transportation + bonuses on this plan</span><span class="v">${egp(sumOf(mine,"bonusTotal"))}</span><span class="small muted">${c.wd} working days</span></div>
     <div class="kpi"><span class="eyebrow">Whole payroll, all plans</span><span class="v">${egp(c.totals.total)}</span><span class="small muted">${c.totals.paid} people paid</span></div>
   </section>
   <section class="panel">
@@ -568,8 +568,8 @@ function resultsHTML(c, plan){
     </table></div>
     <p class="small muted">Select a row to see how each figure was worked out. Copy and download include everyone on both plans.</p>
   </section>
-  ${others.length?`<details class="panel"><summary>Stipends and bonuses only · ${others.length} people · ${egp(sumOf(others,"total"))} EGP</summary>
-    <div class="tablewrap"><table><thead><tr><th>Person</th><th class="r">Insurance</th><th class="r">Stipend</th><th class="r">Bonus</th><th class="r">Reviews</th><th class="r">Total EGP</th></tr></thead><tbody>
+  ${others.length?`<details class="panel"><summary>Transportation and bonuses only · ${others.length} people · ${egp(sumOf(others,"total"))} EGP</summary>
+    <div class="tablewrap"><table><thead><tr><th>Person</th><th class="r">Insurance</th><th class="r">Transportation</th><th class="r">Bonus</th><th class="r">Reviews</th><th class="r">Total EGP</th></tr></thead><tbody>
     ${others.map(r=>`<tr><td><strong>${esc(r.name)}</strong><div class="muted small">${esc(r.role||"")}</div></td><td class="r num">${egp(r.insurance)}</td><td class="r num">${egp(r.stipend)}</td><td class="r num">${egp(r.bonus)}</td><td class="r num">${egp(r.reviews)}</td><td class="r num"><strong>${egp(r.total)}</strong></td></tr>`).join("")}
     </tbody></table></div></details>`:""}`;
 }
@@ -582,7 +582,7 @@ function workingHTML(r,c){
   return `<div class="working">
     <div><h4>Activity</h4>${dl([["Deals",r.deals],["Pax",r.pax],["Inbound incl. missed",r.inAll??"no data"],["Conversion",pct(r.conv)],["Attendance",r.ramp?"first 90 days, exempt":(r.att==null?"no data":pct(r.att))],["CSAT",r.csat==null?"no data":fmt(r.csat,2)],["NPS",r.nps==null?"no data":pct(r.nps)],["Lead score",r.lead==null?"no data":pct(r.lead)],["Cancellations",r.cancels]])}</div>
     ${plan}
-    <div><h4>Payout</h4>${dl([["Commission USD",usd(r.commUSD)],["Milestones USD",usd(r.msUSD)],["Last month owed USD",usd(r.owed)],["× rate",fmt(c.rate,2)],["Commission EGP",egp(r.commEGP)],["Insurance",`${r.policies} × ${S2.bonus.insurance} = ${egp(r.insurance)}`],["Transport stipend",egp(r.stipend)+(r.days!=null?` (${r.days} of ${c.wd} days)`:"")],["Bonus incentive",egp(r.bonus)],["Reviews",`${r.reviewCount} × ${r.reviewRate} = ${egp(r.reviews)}`],["Total EGP","<strong>"+egp(r.total)+"</strong>"]])}</div>
+    <div><h4>Payout</h4>${dl([["Commission USD",usd(r.commUSD)],["Milestones USD",usd(r.msUSD)],["Last month owed USD",usd(r.owed)],["× rate",fmt(c.rate,2)],["Commission EGP",egp(r.commEGP)],["Insurance",`${r.policies} × ${S2.bonus.insurance} = ${egp(r.insurance)}`],["Transportation allowance",egp(r.stipend)+(r.days!=null?` (${r.days} of ${c.wd} days)`:"")],["Bonus incentive",egp(r.bonus)],["Reviews",`${r.reviewCount} × ${r.reviewRate} = ${egp(r.reviews)}`],["Total EGP","<strong>"+egp(r.total)+"</strong>"]])}</div>
   </div>`;
 }
 
@@ -596,7 +596,7 @@ function transfersHTML(c){
   const planChip=p=>p==="fp"?`<span class="chip info">New</span>`:p==="pax"?`<span class="chip plain">Old</span>`:`<span class="chip plain">Bonus only</span>`;
   return `
   <section class="kpis">
-    <div class="kpi"><span class="eyebrow">Earned this month</span><span class="v">${egp(T.earned)}</span><span class="small muted">commission, stipends and bonuses</span></div>
+    <div class="kpi"><span class="eyebrow">Earned this month</span><span class="v">${egp(T.earned)}</span><span class="small muted">commission, transportation and bonuses</span></div>
     <div class="kpi"><span class="eyebrow">Deductions</span><span class="v">${egp(T.ded)}</span><span class="small muted">${c.rows.filter(r=>ded(r)).length} people</span></div>
     <div class="kpi lead"><span class="eyebrow">Total to transfer</span><span class="v">${egp(T.fin)} EGP</span><span class="small muted">${toPay} transfers</span></div>
   </section>
@@ -606,7 +606,7 @@ function transfersHTML(c){
       <p class="small muted">Everyone on both plans. Add anything to take off the final amount, such as an advance or an amount already paid, with a reason so the deduction can be explained later.</p></div>
       <div class="row"><button id="copyPay">Copy transfer list</button>${S.downloads?`<button id="dlPay">Download Bank Transfers CSV</button>`:""}</div></div>
     <div class="tablewrap"><table>
-      <thead><tr><th>Western name</th><th>Arabic name</th><th>Plan</th><th class="r">Commission</th><th class="r">Stipend</th><th class="r">Insurance + bonus + reviews</th><th class="r">Earned</th><th class="r">Deduction EGP</th><th>Reason</th><th class="r">Final transfer EGP</th><th>Paid by</th></tr></thead>
+      <thead><tr><th>Western name</th><th>Arabic name</th><th>Plan</th><th class="r">Commission</th><th class="r">Transportation</th><th class="r">Insurance + bonus + reviews</th><th class="r">Earned</th><th class="r">Deduction EGP</th><th>Reason</th><th class="r">Final transfer EGP</th><th>Paid by</th></tr></thead>
       <tbody>${rows.map(r=>{ const f=fin(r); return `<tr>
         <td><strong>${esc(r.name)}</strong><div class="muted small">${esc(r.role||"")}</div></td><td dir="auto" lang="ar">${r.arabicName?esc(r.arabicName):'<span class="muted small">Add on Team tab</span>'}</td><td>${planChip(r.plan)}</td>
         <td class="r num">${egp(r.commEGP)}</td><td class="r num">${egp(r.stipend)}</td><td class="r num">${egp(r.insurance+r.bonus+r.reviews)}</td>
@@ -798,7 +798,7 @@ function dataHTML(c){
     <div class="maprow">${SOURCES.find(s=>s.key===mp.key).fields.map(([f,label,,opt])=>`<div class="field"><label for="map_${f}">${esc(label)}${opt?" (optional)":""}</label><select id="map_${f}" data-map="${f}"><option value="">${opt?"Not in this file":"Choose column…"}</option>${mp.headers.map((h,i)=>`<option value="${i}" ${mp.map[f]===i?"selected":""}>${esc(h||"Column "+(i+1))}</option>`).join("")}</select></div>`).join("")}</div>
     <div class="row"><button class="primary" id="mpSave">Save to ${monthLabel(m.id)}</button><button class="ghost" id="mpCancel">Cancel</button><span class="small muted">I guessed the columns from the headers. Check them before saving.</span></div></div>` : "";
   const people=c.rows;
-  const adj=`<section class="panel"><div><h2>Month adjustments</h2><p class="small muted">Days worked prorates the transport stipend for joiners and leavers. Leave blank for a full month. Attendance % only needs typing if it isn't in the attendance upload or is wrong there (type 96 for 96%). Last month owed is in USD and is converted at this month's rate.</p></div>
+  const adj=`<section class="panel"><div><h2>Month adjustments</h2><p class="small muted">Days worked prorates the transportation allowance for joiners and leavers. Leave blank for a full month. Attendance % only needs typing if it isn't in the attendance upload or is wrong there (type 96 for 96%). Last month owed is in USD and is converted at this month's rate.</p></div>
     <div class="tablewrap"><table><thead><tr><th>Person</th><th>Days worked</th><th>Attendance % (overrides upload)</th><th>Last month owed (USD)</th><th>Note</th></tr></thead><tbody>
     ${people.map(r=>{ const i=m.inputs?.[r.name]||{}; return `<tr><td>${esc(r.name)}</td>
       <td><input type="number" class="w-num" data-inp="days" data-who="${esc(r.name)}" value="${esc(i.days??"")}" placeholder="full" ${ro?"disabled":""}></td>
@@ -817,7 +817,7 @@ function teamHTML(){
   const ppl=S.roster.people;
   const sel=(opts,val,attr)=>`<select ${attr} ${ro?"disabled":""}>${opts.map(([v,l])=>`<option value="${esc(v)}" ${v===val?"selected":""}>${esc(l)}</option>`).join("")}</select>`;
   return `<section class="panel"><div class="spread"><div><h2>Team</h2><p class="small muted">Plan decides how commission is worked out. Other names lists every spelling the reports use, separated by commas, so a person is never zeroed by a typo. Fixed commission (USD) replaces the calculation: leave it blank to calculate, 0 for no commission.</p></div>${ro?"":`<button class="primary" id="addPerson">Add person</button>`}</div>
-  <div class="tablewrap"><table><thead><tr><th>Western name</th><th>Arabic name</th><th>Other names in reports</th><th>Role</th><th>Plan</th><th class="r">Stipend EGP</th><th class="r">Fixed commission USD</th><th>Higher review rate</th><th>Start date</th><th>Status</th><th>Last working day</th><th class="r">Deposits to date</th><th>$150 paid</th><th>$250 paid</th><th></th></tr></thead><tbody>
+  <div class="tablewrap"><table><thead><tr><th>Western name</th><th>Arabic name</th><th>Other names in reports</th><th>Role</th><th>Plan</th><th class="r">Transportation allowance EGP</th><th class="r">Fixed commission USD</th><th>Higher review rate</th><th>Start date</th><th>Status</th><th>Last working day</th><th class="r">Deposits to date</th><th>$150 paid</th><th>$250 paid</th><th></th></tr></thead><tbody>
   ${ppl.map((p,i)=>`<tr>
     <td><input type="text" class="w-name" data-p="${i}" data-f="name" value="${esc(p.name)}" ${ro?"disabled":""}></td>
     <td><input type="text" class="w-name" dir="auto" lang="ar" data-p="${i}" data-f="arabicName" value="${esc(p.arabicName||"")}" placeholder="الاسم بالعربي" ${ro?"disabled":""} aria-label="Arabic name"></td>
@@ -880,7 +880,7 @@ function rulesHTML(){
     <div class="tablewrap"><table><thead><tr><th>Highest pax level allowed</th><th class="r">From attendance</th></tr></thead><tbody>
     ${(st.attendance?.caps||[]).map((c,i)=>`<tr><td>${esc(c.level)}</td><td class="r">${n(`attendance.caps.${i}.min`,c.min)}</td></tr>`).join("")}
     </tbody></table></div>
-    <p class="small muted">Attendance = scheduled hours less hours lost, divided by scheduled hours, with approved leave taken out. Upload it monthly from the attendance sheet. On the FP plan attendance only applies the 90% rule. Milestones, stipends, insurance, incentives and reviews still pay.</p>
+    <p class="small muted">Attendance = scheduled hours less hours lost, divided by scheduled hours, with approved leave taken out. Upload it monthly from the attendance sheet. On the FP plan attendance only applies the 90% rule. Milestones, transportation allowance, insurance, incentives and reviews still pay.</p>
   </section>
   <section class="panel"><h2>Pax commission plan</h2>
     <div class="tablewrap"><table><thead><tr><th>Tier</th><th class="r">From final pax</th><th class="r">USD per pax</th></tr></thead><tbody>
@@ -938,8 +938,8 @@ async function savePending(){
 /* ---------------- exports ---------------- */
 function currentCalc(){ return S.month.closed && S.month.snapshot ? S.month.snapshot : compute(S.settings,S.roster,S.month); }
 function csv(rows){ return rows.map(r=>r.map(v=>{ const s=String(v??""); return /[",\n]/.test(s)?`"${s.replace(/"/g,'""')}"`:s; }).join(",")).join("\r\n"); }
-function payrollRows(c){ const f=r=>r.final??r.total; const list=c.rows.filter(r=>r.total>0||r.deduct); return [["Western name","Arabic name","Role","Plan","Commission EGP","Insurance EGP","Transport EGP","Bonus EGP","Reviews EGP","Earned EGP","Deduction EGP","Deduction reason","Final transfer EGP","Paid by"], ...list.map(r=>[r.name,r.arabicName||"",r.role,PLANS[r.plan],Math.round(r.commEGP),r.insurance,r.stipend,r.bonus,r.reviews,Math.round(r.total),r.deduct||0,r.deductNote||"",Math.round(Math.max(0,f(r))),r.method||""]), ["TOTAL","","","",Math.round(c.totals.commEGP),c.totals.insurance,c.totals.stipend,c.totals.extra,c.totals.reviews,Math.round(c.totals.total),c.rows.reduce((a,r)=>a+(r.deduct||0),0),"",Math.round(c.rows.reduce((a,r)=>a+Math.max(0,f(r)),0)),""]]; }
-function detailRows(c){ return [["Western name","Arabic name","Role","Plan","Deals","Pax","Final pax","FP bookings","Inbound incl missed","Conversion","Attendance","CSAT","NPS","Lead score","Cancellations","Level / tier paid","Multiplier","Commission USD","Milestones USD","Owed USD","Rate","Commission EGP","Insurance","Stipend","Bonus","Reviews","Total EGP","Deduction EGP","Deduction reason","Final transfer EGP","Paid by","Checks"],
+function payrollRows(c){ const f=r=>r.final??r.total; const list=c.rows.filter(r=>r.total>0||r.deduct); return [["Western name","Arabic name","Role","Plan","Commission EGP","Insurance EGP","Transportation allowance EGP","Bonus EGP","Reviews EGP","Earned EGP","Deduction EGP","Deduction reason","Final transfer EGP","Paid by"], ...list.map(r=>[r.name,r.arabicName||"",r.role,PLANS[r.plan],Math.round(r.commEGP),r.insurance,r.stipend,r.bonus,r.reviews,Math.round(r.total),r.deduct||0,r.deductNote||"",Math.round(Math.max(0,f(r))),r.method||""]), ["TOTAL","","","",Math.round(c.totals.commEGP),c.totals.insurance,c.totals.stipend,c.totals.extra,c.totals.reviews,Math.round(c.totals.total),c.rows.reduce((a,r)=>a+(r.deduct||0),0),"",Math.round(c.rows.reduce((a,r)=>a+Math.max(0,f(r)),0)),""]]; }
+function detailRows(c){ return [["Western name","Arabic name","Role","Plan","Deals","Pax","Final pax","FP bookings","Inbound incl missed","Conversion","Attendance","CSAT","NPS","Lead score","Cancellations","Level / tier paid","Multiplier","Commission USD","Milestones USD","Owed USD","Rate","Commission EGP","Insurance","Transportation allowance","Bonus","Reviews","Total EGP","Deduction EGP","Deduction reason","Final transfer EGP","Paid by","Checks"],
   ...c.rows.map(r=>[r.name,r.arabicName||"",r.role,PLANS[r.plan],r.deals,r.pax,r.finalPax??"",r.fpCount??"",r.inAll??"",r.conv==null?"":(r.conv*100).toFixed(1)+"%",r.att==null?"":(r.att*100).toFixed(1)+"%",r.csat??"",r.nps==null?"":(r.nps*100).toFixed(1)+"%",r.lead==null?"":(r.lead*100).toFixed(1)+"%",r.cancels,r.plan==="pax"?r.level:r.plan==="fp"?"Tier "+r.tierPaid:"",r.mult??"",r.commUSD.toFixed(2),r.msUSD,r.owed,c.rate,r.commEGP.toFixed(2),r.insurance,r.stipend,r.bonus,r.reviews,r.total.toFixed(2),r.deduct||0,r.deductNote||"",(r.final??r.total).toFixed(2),r.method||"",r.flags.map(f=>f[1]).join("; ")])]; }
 async function download(name,rows){
   try{ await S.downloads.save({filename:name,data:new Blob(["﻿"+csv(rows)],{type:"text/csv"})}); }
