@@ -119,15 +119,42 @@ details summary{cursor:pointer;font-weight:600;color:var(--brand)}
 details.panel:not([open]){gap:0}
 a{color:var(--accent)}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
-.dash-title{background:var(--brand);color:#fff;text-align:center;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:10px 12px;font-size:1rem;border:1px solid var(--brand)}
-.dash-kpi{border-collapse:collapse;width:100%}
-.dash-kpi th{background:#0f7c78;color:#fff;text-align:center;white-space:normal;font-size:.82rem;padding:8px 12px;border:1px solid #0b5f5c;position:static;line-height:1.2}
-.dash-kpi td{background:#f4f5f7;text-align:center;font-size:1.25rem;font-weight:700;padding:12px 14px;border:1px solid #c9ced5;font-variant-numeric:tabular-nums}
-.dash-table th{background:var(--brand);color:#fff;text-align:center;white-space:normal;line-height:1.2;border:1px solid #23466f;font-size:.8rem;padding:8px 9px}
-.dash-table td{border:1px solid #e2e5e9}
-.dash-table tr.grp td{background:#e9eef4!important;font-weight:700;color:var(--brand);text-transform:uppercase;font-size:.76rem;letter-spacing:.04em}
-.dash-table td.notes{white-space:normal;min-width:220px}
-.dash-table td.notes .chip{white-space:normal;margin:1px 3px 1px 0}
+.sum{display:grid;gap:16px}
+.sum-head{display:flex;flex-wrap:wrap;gap:8px 16px;justify-content:space-between;align-items:flex-end}
+.sum-head h2{font-size:1.35rem;font-weight:700;color:var(--brand)}
+.sum-head .sub{color:var(--muted);font-size:.88rem;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.sum-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:12px}
+.sum-card{background:#fff;border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:grid;gap:4px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+.sum-card .l{font-size:.8rem;color:var(--muted);font-weight:500}
+.sum-card .v{font-size:1.6rem;font-weight:700;line-height:1.15;font-variant-numeric:tabular-nums;color:var(--ink)}
+.sum-card .s{font-size:.78rem;color:var(--muted)}
+.sum-card.hero{background:var(--brand);border-color:var(--brand);grid-column:span 2}
+.sum-card.hero .l,.sum-card.hero .s{color:#b9c6d6}.sum-card.hero .v{color:#fff;font-size:1.9rem}
+@media (max-width:520px){.sum-card.hero{grid-column:auto}}
+.sum-split{background:#fff;border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:grid;gap:10px}
+.sum-split .bar{display:flex;height:12px;border-radius:6px;overflow:hidden;background:#eef0f3}
+.sum-split .bar span{display:block;height:100%}
+.sum-legend{display:flex;flex-wrap:wrap;gap:8px 22px;font-size:.84rem}
+.sum-legend b{font-variant-numeric:tabular-nums}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:0}
+.c-old{background:#7c8da3}.c-new{background:var(--accent)}.c-bon{background:#d49a1a}
+.sum-tablecard{background:#fff;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.sum-tablecard .tablewrap{border:none;border-radius:0}
+.sum-table th{background:#fff;color:var(--muted);font-weight:600;font-size:.78rem;border-bottom:1px solid var(--line);padding:10px 12px;white-space:normal;line-height:1.25}
+.sum-table td{padding:10px 12px;border-bottom:1px solid #f0f1f3}
+.sum-table tbody tr:nth-child(even) td{background:#fff}
+.sum-table tbody tr:hover td{background:#f7f9fc}
+.sum-table tr.grp td{background:#f8f9fb!important;font-weight:600;color:var(--ink);font-size:.82rem;padding:8px 12px;border-bottom:1px solid var(--line)}
+.sum-table tr.grp .cnt{color:var(--muted);font-weight:400;margin-left:6px}
+.sum-table tr.grp .amt{float:right;font-variant-numeric:tabular-nums}
+.sum-table td.notes{white-space:normal;min-width:200px;max-width:280px}
+.sum-table td.notes .chip{white-space:normal;margin:1px 3px 1px 0}
+.sum-table tr.total td{background:#f3f5f8!important;border-top:1px solid var(--line-2)}
+.who{display:flex;gap:10px;align-items:center}
+.av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:.72rem;font-weight:700;color:#fff;flex:none}
+.convbar{display:inline-block;width:46px;height:5px;border-radius:3px;background:#eef0f3;vertical-align:middle;margin-left:8px;overflow:hidden}
+.convbar i{display:block;height:100%;background:var(--accent)}
+.planlbl{font-size:.8rem;white-space:nowrap}
 .demo-banner{border-color:#ecd9a8!important;border-left-color:#d49a1a!important;background:#fffaf0!important}
 @media print{header.top,nav.tabs{display:none}}
 </style>
@@ -214,7 +241,7 @@ function toast(msg){ const t=$("#toast"); t.textContent=msg; t.hidden=false; cle
 
 /* ---------------- state ---------------- */
 const S = { db:null, canEdit:false, downloads:null, settings:null, roster:null, months:[], monthId:null, month:null,
-  tab: (()=>{ try{const v=localStorage.getItem("chcc.tab"); return (!v||v==="results")?"summary":v;}catch(e){return "summary";} })(),
+  tab: (()=>{ try{const v=localStorage.getItem("chcc.tab"); return (!v||v==="results")?"fp":v;}catch(e){return "fp";} })(),
   open:{}, pending:null, ready:{settings:false,roster:false,months:false}, unsubMonth:null, dbMissing:false };
 
 function personMap(roster){
@@ -472,7 +499,7 @@ function headerHTML(){
   ${!S.canEdit && !S.dbMissing? `<div class="readonly-note">You can view results. Only editors can upload files or change rates.</div>`:""}`;
 }
 function tabsHTML(){
-  const t=[["summary","Summary"],["fp","New rules · FP bonus"],["pax","Old rules · Pax commission"],["transfers","Bank Transfers"],["reviews","Reviews"],["insurance","Insurance sold"],["data","Uploads & adjustments"],["team","Team"],["rules","Rates & rules"]];
+  const t=[["fp","New rules · FP bonus"],["pax","Old rules · Pax commission"],["transfers","Bank Transfers"],["reviews","Reviews"],["insurance","Insurance sold"],["data","Uploads & adjustments"],["team","Team"],["rules","Rates & rules"],["summary","Summary"]];
   return `<nav class="tabs" role="tablist">${t.map(([k,l])=>`<button role="tab" data-tab="${k}" aria-selected="${S.tab===k}">${l}</button>`).join("")}</nav>`;
 }
 function bodyHTML(calc){
@@ -603,41 +630,58 @@ function summaryHTML(c){
   const netUSD=r=>(r.commUSD||0)+(r.msUSD||0)+(r.owed||0);
   const totUSD=c.rows.reduce((a,r)=>a+netUSD(r),0);
   const totPax=pax.reduce((a,r)=>a+(r.finalPax||0),0), totFP=fp.reduce((a,r)=>a+(r.fpCount||0),0);
+  const tot=list=>list.reduce((a,r)=>a+(r.total||0),0);
+  const T=c.totals.total||0, tOld=tot(pax), tNew=tot(fp), tBon=tot(other);
+  const share=v=>T? (v/T*100) : 0;
+  const base=r=>r.plan==="pax"? (r.baseUSD??(r.finalPax||0)*(r.paxRate||0)) : r.plan==="fp"? (r.fpUSD||0) : 0;
+  const palette=["#1d64a8","#0f7c78","#7a5195","#c2561d","#2f6f3e","#9c2f5b","#3e5c76","#8a6d1f"];
+  const avColor=n=>palette[[...n].reduce((a,ch)=>a+ch.charCodeAt(0),0)%palette.length];
+  const initials=n=>n.split(/[\s/]+/).filter(Boolean).slice(0,2).map(w=>w[0]).join("").toUpperCase();
   const notes=r=>r.flags.map(([k,t])=>`<span class="chip ${k}">${esc(t)}</span>`).join("");
+  const conv=r=> r.conv==null? "" : `${pct(r.conv)}<span class="convbar"><i style="width:${Math.min(100,Math.round(r.conv*100))}%"></i></span>`;
   const row=r=>{ const isPax=r.plan==="pax", isFP=r.plan==="fp";
-    return `<tr><td><strong>${esc(r.name)}</strong><div class="muted small">${esc(r.role||"")}</div></td>
-      <td class="c">${isFP?`<span class="chip info">New</span>`:isPax?`<span class="chip plain">Old</span>`:`<span class="chip plain">Bonus only</span>`}</td>
+    return `<tr><td><div class="who"><span class="av" style="background:${avColor(r.name)}">${esc(initials(r.name))}</span><div><strong>${esc(r.name)}</strong><div class="muted small">${esc(r.role||"")}</div></div></div></td>
       <td class="r num">${r.inAll==null?"":fmt(r.inAll)}</td><td class="r num">${(isPax||isFP)?fmt(r.deals):""}</td>
-      <td class="r num">${r.conv==null?"":pct(r.conv)}</td>
-      <td class="r num">${isPax?fmt(r.finalPax):isFP?`${fmt(r.fpCount)} <span class="muted small">FP</span>`:""}</td>
+      <td class="r num">${conv(r)}</td>
+      <td class="r num">${isPax?fmt(r.finalPax)+' <span class="muted small">pax</span>':isFP?fmt(r.fpCount)+' <span class="muted small">FP</span>':""}</td>
       <td class="r num">${isPax?usd(r.paxRate):isFP?`Tier ${r.tierPaid||0}`:""}</td>
-      <td class="r num">${isPax?fmt(r.mult,3):""}</td>
-      <td class="r num">${isPax?usd(r.baseUSD??(r.finalPax||0)*(r.paxRate||0)):isFP?usd(r.fpUSD):""}</td>
+      <td class="r num">${isPax?"×"+fmt(r.mult,3):""}</td>
+      <td class="r num">${(isPax||isFP)?usd(base(r)):""}</td>
       <td class="r num">${egp(r.bonusTotal)}</td>
       <td class="r num">${(isPax||isFP||r.owed)?usd(netUSD(r)):""}</td>
       <td class="r num"><strong>${egp(r.total)}</strong></td>
       <td class="notes">${notes(r)}</td></tr>`; };
-  const grp=(label,list)=> list.length? `<tr class="grp"><td colspan="13">${label} · ${list.length} ${list.length===1?"person":"people"}</td></tr>${list.slice().sort((a,b)=>b.total-a.total).map(row).join("")}` : "";
-  const sumK=(list,f)=>list.reduce((a,r)=>a+(f(r)||0),0);
+  const grp=(label,cls,list)=> list.length? `<tr class="grp"><td colspan="12"><span class="dot ${cls}"></span>${label}<span class="cnt">${list.length} ${list.length===1?"person":"people"}</span><span class="amt">${egp(tot(list))} EGP</span></td></tr>${list.slice().sort((a,b)=>b.total-a.total).map(row).join("")}` : "";
   return `
-  <section class="panel" style="gap:14px">
-    <div class="dash-title">Commission Summary Dashboard · ${esc(monthLabel(m.id))}</div>
-    <div class="tablewrap" style="border:none"><table class="dash-kpi">
-      <thead><tr><th>Sales Agents Active</th><th>Total Pax (After Cancel)</th><th>FP Bookings</th><th>Avg Conversion</th><th>Total Com. (USD)</th><th>Total Com. (EGP)</th><th>USD → EGP Rate</th></tr></thead>
-      <tbody><tr><td>${sales.length}</td><td>${fmt(totPax)}</td><td>${fmt(totFP)}</td><td>${inb? Math.round(deals/inb*100)+"%" : "-"}</td><td>${usd(totUSD)}</td><td>${egp(c.totals.total)} EGP</td><td>${fmt(c.rate,2)}</td></tr></tbody>
-    </table></div>
-    <div class="tablewrap"><table class="dash-table">
-      <thead><tr><th>Agent Name</th><th>Plan</th><th>Inbound Calls</th><th>Deals</th><th>Conversion</th><th>Pax (After Cancel) / FP</th><th>Rate/Pax / Tier</th><th>Multiplier</th><th>Base Com (USD)</th><th>Total Bonuses (EGP)</th><th>Net Com (USD)</th><th>Com (EGP)</th><th>Notes</th></tr></thead>
+  <section class="sum">
+    <div class="sum-head">
+      <div><h2>Commission summary</h2></div>
+      <div class="sub"><span>${esc(monthLabel(m.id))}</span><span class="status ${m.closed?"closed":"draft"}">${m.closed?"Closed":"Draft"}</span><span>USD → EGP <b class="num">${fmt(c.rate,2)}</b></span></div>
+    </div>
+    <div class="sum-cards">
+      <div class="sum-card hero"><span class="l">Total commission (EGP)</span><span class="v num">${egp(T)}</span><span class="s">commission ${egp(totUSD*c.rate)} + bonuses ${egp(c.totals.bonus)}</span></div>
+      <div class="sum-card"><span class="l">Total commission (USD)</span><span class="v num">${usd(totUSD)}</span><span class="s">before bonuses</span></div>
+      <div class="sum-card"><span class="l">Sales agents active</span><span class="v num">${sales.length}</span><span class="s">${pax.length} old rules · ${fp.length} new rules</span></div>
+      <div class="sum-card"><span class="l">Pax after cancellations</span><span class="v num">${fmt(totPax)}</span><span class="s">old rules</span></div>
+      <div class="sum-card"><span class="l">FP bookings</span><span class="v num">${fmt(totFP)}</span><span class="s">new rules</span></div>
+      <div class="sum-card"><span class="l">Avg conversion</span><span class="v num">${inb? Math.round(deals/inb*100)+"%" : "-"}</span><span class="s">${fmt(deals)} deals from ${fmt(inb)} calls</span></div>
+    </div>
+    <div class="sum-split">
+      <div class="spread"><strong>Where the payroll goes</strong><span class="small muted">${egp(T)} EGP across ${c.rows.length} people</span></div>
+      <div class="bar" role="img" aria-label="Old rules ${Math.round(share(tOld))}%, new rules ${Math.round(share(tNew))}%, bonuses only ${Math.round(share(tBon))}%"><span class="c-old" style="width:${share(tOld)}%"></span><span class="c-new" style="width:${share(tNew)}%"></span><span class="c-bon" style="width:${share(tBon)}%"></span></div>
+      <div class="sum-legend"><span><span class="dot c-old"></span>Old rules <b>${egp(tOld)}</b> <span class="muted">${Math.round(share(tOld))}%</span></span><span><span class="dot c-new"></span>New rules <b>${egp(tNew)}</b> <span class="muted">${Math.round(share(tNew))}%</span></span><span><span class="dot c-bon"></span>Bonuses only <b>${egp(tBon)}</b> <span class="muted">${Math.round(share(tBon))}%</span></span></div>
+    </div>
+    <div class="sum-tablecard"><div class="tablewrap"><table class="sum-table">
+      <thead><tr><th>Agent</th><th class="r">Inbound calls</th><th class="r">Deals</th><th class="r">Conversion</th><th class="r">Pax / FP</th><th class="r">Rate / Tier</th><th class="r">Multiplier</th><th class="r">Base com (USD)</th><th class="r">Bonuses (EGP)</th><th class="r">Net com (USD)</th><th class="r">Com (EGP)</th><th>Notes</th></tr></thead>
       <tbody>
-        ${grp("Old rules · Pax commission",pax)}
-        ${grp("New rules · FP bonus",fp)}
-        ${grp("Bonuses only",other)}
-        <tr class="total"><td colspan="2">Total</td><td class="r num">${fmt(inb)}</td><td class="r num">${fmt(deals)}</td><td class="r num">${inb?pct(deals/inb):""}</td>
-          <td class="r num">${fmt(totPax)} / ${fmt(totFP)} FP</td><td></td><td></td>
-          <td class="r num">${usd(sumK(pax,r=>r.baseUSD??(r.finalPax||0)*(r.paxRate||0))+sumK(fp,r=>r.fpUSD))}</td>
-          <td class="r num">${egp(c.totals.bonus)}</td><td class="r num">${usd(totUSD)}</td><td class="r num">${egp(c.totals.total)}</td><td></td></tr>
-      </tbody></table></div>
-    <p class="small muted">Base Com is before the multiplier on the old rules, and the FP bonus on the new rules. Net Com adds the multiplier, milestones and any amount owed from last month. Com (EGP) is Net Com converted at ${fmt(c.rate,2)}, plus all bonuses. Avg Conversion is total deals ÷ total inbound calls for everyone on a commission plan.</p>
+        ${grp("Old rules · Pax commission","c-old",pax)}
+        ${grp("New rules · FP bonus","c-new",fp)}
+        ${grp("Bonuses only","c-bon",other)}
+        <tr class="total"><td>Total</td><td class="r num">${fmt(inb)}</td><td class="r num">${fmt(deals)}</td><td class="r num">${inb?pct(deals/inb):""}</td>
+          <td class="r num">${fmt(totPax)} pax · ${fmt(totFP)} FP</td><td></td><td></td>
+          <td class="r num">${usd(c.rows.reduce((a,r)=>a+base(r),0))}</td><td class="r num">${egp(c.totals.bonus)}</td><td class="r num">${usd(totUSD)}</td><td class="r num">${egp(T)}</td><td></td></tr>
+      </tbody></table></div></div>
+    <p class="small muted">Base com is before the multiplier on the old rules, and the FP bonus on the new rules. Net com adds the multiplier, milestones and anything owed from last month. Com (EGP) is net com at ${fmt(c.rate,2)} plus all bonuses. Avg conversion is total deals ÷ total inbound calls for everyone on a commission plan.</p>
   </section>`;
 }
 
