@@ -68,8 +68,8 @@ A good order to present it: New rules tab (Nadia, Karim, Omar), Old rules tab (E
 
 A second tool on the same site, for monthly base salaries. Switch between the two with the **Commission | Base salary** buttons in the header. Its data and backups are separate from the commission tool.
 
-- **Payroll**: one row per employee, laid out like the salary sheet. Type days deducted, public holidays worked, extra days, bonus, loan, payment method, batch, status, payment date and notes for Marcus. Amounts and Net Total are worked out for you.
-- **Rules**: day rate = basic ÷ 30. Each public holiday worked adds 2 extra days' pay (3 days in total for that day). Each other extra day adds 1 day's pay. Net = basic − deductions + holiday pay + extra pay + bonus − loan. All adjustable on Settings.
+- **Payroll**: one row per employee, laid out like the salary sheet. Type days deducted, any other deduction in EGP (for example a payout deduction) with the reason, public holidays worked, extra days, bonus, loan, payment method, batch, status, payment date and notes for Marcus. Amounts and Net Total are worked out for you.
+- **Rules**: day rate = basic ÷ 30. Each public holiday worked adds 2 extra days' pay (3 days in total for that day). Each other extra day adds 1 day's pay. Net = basic − day deductions − other deductions + holiday pay + extra pay + bonus − loan. A row with a deduction and no reason is flagged. All adjustable on Settings.
 - **Cash & transfers**: the total cash to transfer to Amira to hand out, with a printable list and a signature column, plus totals by payment method and by batch.
 - **Employees**: English reference name, Arabic bank name, basic (net), default method and batch. **Import from salary sheet** reads an existing salary workbook and adds or updates everyone in one go.
 - **Summary**: totals, what was added and taken off, how salaries are paid, status, and month by month.
