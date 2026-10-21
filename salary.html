@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<style>html:not(.d1-ready) body>*{display:none!important}</style>
+<script src="lock.js"></script>
 <title>Day1 Base Salary</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%273%27 fill=%27%230e2a4a%27/%3E%3Ctext x=%2716%27 y=%2721.5%27 font-family=%27Arial,sans-serif%27 font-weight=%27700%27 font-size=%2714%27 fill=%27white%27 text-anchor=%27middle%27%3ED1%3C/text%3E%3C/svg%3E">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -218,6 +220,7 @@ function header(m){
       <button data-act="newmonth">New month</button>
       <button data-act="backup">Download backup</button>
       <button data-act="restore">Restore backup</button>
+      <button data-signout title="Sign out of the payroll tools">Lock</button>
     </div>
   </header>
   ${DEMO?`<div class="notice demo-banner"><div class="spread"><span><b>Demo mode.</b> Fictional employees and figures for walkthroughs. Your real data is kept separately and is not touched here.</span><span class="row"><button data-act="resetdemo">Reset demo</button><a href="./salary.html">Open the real tool</a></span></div></div>`:""}

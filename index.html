@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>html:not(.d1-ready) body>*{display:none!important}</style>
+<script src="lock.js"></script>
 <title>Day1 Commission Calculator</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%273%27 fill=%27%230e2a4a%27/%3E%3Ctext x=%2716%27 y=%2721.5%27 font-family=%27Arial,sans-serif%27 font-weight=%27700%27 font-size=%2714%27 fill=%27white%27 text-anchor=%27middle%27%3ED1%3C/text%3E%3C/svg%3E">
 
@@ -500,6 +502,7 @@ function headerHTML(){
       ${S.canEdit? `<button id="newMonth" class="ghost">New month</button>`:""}
       <button id="backupData" class="ghost" title="Save everything to a file you keep">Download backup</button>
       <button id="restoreData" class="ghost" title="Load a backup file into this browser">Restore backup</button>
+      <button data-signout class="ghost" title="Sign out of the payroll tools">Lock</button>
     </div>
   </header>
   ${DEMO? `<div class="notice info demo-banner"><div class="spread"><span><b>Demo mode.</b> Fictional team and figures for walkthroughs. Your real data is kept separately and is not touched here.</span><span class="row"><button id="resetDemo" class="ghost">Reset demo</button><a href="./" class="small">Open the real calculator</a></span></div></div>`:""}
