@@ -550,14 +550,14 @@ function resultsHTML(c, plan){
     <div class="kpi lead"><span class="eyebrow">${isPax?"Old rules total":"New rules total"}</span><span class="v">${egp(planTotal)} EGP</span><span class="small muted">${mine.length} ${mine.length===1?"person":"people"} on this plan</span></div>
     <div class="kpi"><span class="eyebrow">Commission on this plan</span><span class="v">${egp(sumOf(mine,"commEGP"))}</span><span class="small muted">at ${fmt(c.rate,2)} EGP per USD</span></div>
     <div class="kpi"><span class="eyebrow">Transportation + bonuses on this plan</span><span class="v">${egp(sumOf(mine,"bonusTotal"))}</span><span class="small muted">${c.wd} working days</span></div>
-    <div class="kpi"><span class="eyebrow">Whole payroll, all plans</span><span class="v">${egp(c.totals.total)}</span><span class="small muted">${c.totals.paid} people paid</span></div>
+    <div class="kpi"><span class="eyebrow">Total variable pay, all plans</span><span class="v">${egp(c.totals.total)}</span><span class="small muted">${c.totals.paid} people paid</span></div>
   </section>
   <section class="panel">
     <div class="spread"><div><h2>${isPax?"Old rules: pax commission":"New rules: FP bonus"} · ${monthLabel(m.id)}</h2>
       <p class="small muted">${isPax?"Final pax × rate per pax × performance multiplier.":"FP bookings at the month's tier rate, one tier lower per missed standard, plus milestones."}</p></div>
       <div class="row">
-        <button id="copyPay">Copy HR payroll</button>
-        ${S.downloads? `<button id="dlPay">Download payroll CSV</button><button id="dlDetail" class="ghost">Download full detail</button>`:""}
+        <button id="copyPay">Copy transfer list</button>
+        ${S.downloads? `<button id="dlPay">Download transfers CSV</button><button id="dlDetail" class="ghost">Download full detail</button>`:""}
         ${S.canEdit? (m.closed? `<button id="reopen" class="ghost">Reopen month</button>` : `<button id="closeMonth" class="primary">Close month</button>`):""}
       </div></div>
     ${S.confirmClose? `<div class="notice info"><strong>Close ${monthLabel(m.id)}?</strong><span>This freezes both plans' figures and carries deposits and milestones forward to next month. You can reopen it later.</span><div class="row"><button class="primary" id="confirmClose">Close month</button><button class="ghost" id="cancelClose">Cancel</button></div></div>`:""}
@@ -655,19 +655,19 @@ function summaryHTML(c){
   return `
   <section class="sum">
     <div class="sum-head">
-      <div><h2>Commission summary</h2></div>
+      <div><h2>Variable pay summary</h2></div>
       <div class="sub"><span>${esc(monthLabel(m.id))}</span><span class="status ${m.closed?"closed":"draft"}">${m.closed?"Closed":"Draft"}</span><span>USD → EGP <b class="num">${fmt(c.rate,2)}</b></span></div>
     </div>
     <div class="sum-cards">
-      <div class="sum-card hero"><span class="l">Total commission (EGP)</span><span class="v num">${egp(T)}</span><span class="s">commission ${egp(totUSD*c.rate)} + bonuses ${egp(c.totals.bonus)}</span></div>
-      <div class="sum-card"><span class="l">Total commission (USD)</span><span class="v num">${usd(totUSD)}</span><span class="s">before bonuses</span></div>
+      <div class="sum-card hero"><span class="l">Total variable pay (EGP)</span><span class="v num">${egp(T)}</span><span class="s">commission ${egp(totUSD*c.rate)} + bonuses ${egp(c.totals.bonus)}</span></div>
+      <div class="sum-card"><span class="l">Commission (USD)</span><span class="v num">${usd(totUSD)}</span><span class="s">before bonuses</span></div>
       <div class="sum-card"><span class="l">Sales agents active</span><span class="v num">${sales.length}</span><span class="s">${pax.length} old rules · ${fp.length} new rules</span></div>
       <div class="sum-card"><span class="l">Pax after cancellations</span><span class="v num">${fmt(totPax)}</span><span class="s">old rules</span></div>
       <div class="sum-card"><span class="l">FP bookings</span><span class="v num">${fmt(totFP)}</span><span class="s">new rules</span></div>
       <div class="sum-card"><span class="l">Avg conversion</span><span class="v num">${inb? Math.round(deals/inb*100)+"%" : "-"}</span><span class="s">${fmt(deals)} deals from ${fmt(inb)} calls</span></div>
     </div>
     <div class="sum-split">
-      <div class="spread"><strong>Where the payroll goes</strong><span class="small muted">${egp(T)} EGP across ${c.rows.length} people</span></div>
+      <div class="spread"><strong>Variable pay by plan</strong><span class="small muted">${egp(T)} EGP across ${c.rows.length} people</span></div>
       <div class="bar" role="img" aria-label="Old rules ${Math.round(share(tOld))}%, new rules ${Math.round(share(tNew))}%, bonuses only ${Math.round(share(tBon))}%"><span class="c-old" style="width:${share(tOld)}%"></span><span class="c-new" style="width:${share(tNew)}%"></span><span class="c-bon" style="width:${share(tBon)}%"></span></div>
       <div class="sum-legend"><span><span class="dot c-old"></span>Old rules <b>${egp(tOld)}</b> <span class="muted">${Math.round(share(tOld))}%</span></span><span><span class="dot c-new"></span>New rules <b>${egp(tNew)}</b> <span class="muted">${Math.round(share(tNew))}%</span></span><span><span class="dot c-bon"></span>Bonuses only <b>${egp(tBon)}</b> <span class="muted">${Math.round(share(tBon))}%</span></span></div>
     </div>
@@ -943,7 +943,7 @@ function detailRows(c){ return [["Western name","Arabic name","Role","Plan","Dea
   ...c.rows.map(r=>[r.name,r.arabicName||"",r.role,PLANS[r.plan],r.deals,r.pax,r.finalPax??"",r.fpCount??"",r.inAll??"",r.conv==null?"":(r.conv*100).toFixed(1)+"%",r.att==null?"":(r.att*100).toFixed(1)+"%",r.csat??"",r.nps==null?"":(r.nps*100).toFixed(1)+"%",r.lead==null?"":(r.lead*100).toFixed(1)+"%",r.cancels,r.plan==="pax"?r.level:r.plan==="fp"?"Tier "+r.tierPaid:"",r.mult??"",r.commUSD.toFixed(2),r.msUSD,r.owed,c.rate,r.commEGP.toFixed(2),r.insurance,r.stipend,r.bonus,r.reviews,r.total.toFixed(2),r.deduct||0,r.deductNote||"",(r.final??r.total).toFixed(2),r.method||"",r.flags.map(f=>f[1]).join("; ")])]; }
 async function download(name,rows){
   try{ await S.downloads.save({filename:name,data:new Blob(["﻿"+csv(rows)],{type:"text/csv"})}); }
-  catch(e){ if(e.code!=="declined") toast("The download didn't start. Use Copy HR payroll instead."); }
+  catch(e){ if(e.code!=="declined") toast("The download didn't start. Use Copy transfer list instead."); }
 }
 
 /* ---------------- events ---------------- */
@@ -968,7 +968,7 @@ document.addEventListener("click", async e=>{
   if(t.id==="addPerson"){ S.roster.people.push({name:"New person",aliases:"",role:"Cruise Manager",plan:"fp",stipend:2000,status:"active"}); await saveRoster(); return; }
   if(t.dataset.del!=null){ S.confirmDel=+t.dataset.del; render(); return; }
   if(t.dataset.delyes!=null){ S.roster.people.splice(+t.dataset.delyes,1); S.confirmDel=null; await saveRoster(); return; }
-  if(t.id==="copyPay"){ const rows=payrollRows(currentCalc()).map(r=>r.join("\t")).join("\n"); try{ await navigator.clipboard.writeText(rows); toast("Transfer list copied. Paste it into Sheets or an email."); }catch(_){ toast("Copy isn't allowed here. Use Download payroll CSV."); } return; }
+  if(t.id==="copyPay"){ const rows=payrollRows(currentCalc()).map(r=>r.join("\t")).join("\n"); try{ await navigator.clipboard.writeText(rows); toast("Transfer list copied. Paste it into Sheets or an email."); }catch(_){ toast("Copy isn't allowed here. Use Download transfers CSV."); } return; }
   if(t.id==="dlPay"){ download(`Day1_${S.monthId}_Bank_Transfers.csv`,payrollRows(currentCalc())); return; }
   if(t.id==="dlDetail"){ download(`Day1_${S.monthId}_Commission_Detail.csv`,detailRows(currentCalc())); return; }
   if(t.id==="closeMonth"){ S.confirmClose=true; render(); return; }
