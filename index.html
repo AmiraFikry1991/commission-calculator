@@ -155,6 +155,10 @@ a{color:var(--accent)}
 .convbar{display:inline-block;width:46px;height:5px;border-radius:3px;background:#eef0f3;vertical-align:middle;margin-left:8px;overflow:hidden}
 .convbar i{display:block;height:100%;background:var(--accent)}
 .planlbl{font-size:.8rem;white-space:nowrap}
+.switch{display:inline-flex;border:1px solid rgba(255,255,255,.35);border-radius:3px;overflow:hidden;margin-left:6px}
+.switch a,.switch span{padding:4px 10px;font-size:.8rem;font-weight:600;color:#dbe4ef;text-decoration:none}
+.switch span{background:#fff;color:var(--brand)}
+.switch a:hover{background:rgba(255,255,255,.12)}
 .demo-banner{border-color:#ecd9a8!important;border-left-color:#d49a1a!important;background:#fffaf0!important}
 @media print{header.top,nav.tabs{display:none}}
 </style>
@@ -487,7 +491,7 @@ function headerHTML(){
   const opts=S.months.map(id=>`<option value="${id}" ${id===S.monthId?"selected":""}>${monthLabel(id)}</option>`).join("");
   const ro = !S.canEdit || m?.closed;
   return `<header class="top">
-    <div class="brand"><span class="logo">Day1</span><h1>Commission Calculator</h1></div>
+    <div class="brand"><span class="logo">Day1</span><h1>Commission Calculator</h1><span class="switch" role="navigation" aria-label="Switch tool"><span aria-current="page">Commission</span><a href="./salary.html${DEMO?"?demo":""}">Base salary</a></span></div>
     <div class="monthbar">
       ${S.months.length? `<div class="field"><label for="monthSel">Pay period</label><select id="monthSel">${opts}</select></div>`:""}
       ${m? `<div class="field"><label for="mRate">USD to EGP</label><input id="mRate" type="number" step="0.01" style="width:110px" value="${esc(m.rate??S.settings.rate)}" ${ro?"disabled":""}></div>

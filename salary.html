@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Day1 Base Salary</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%273%27 fill=%27%230e2a4a%27/%3E%3Ctext x=%2716%27 y=%2721.5%27 font-family=%27Arial,sans-serif%27 font-weight=%27700%27 font-size=%2714%27 fill=%27white%27 text-anchor=%27middle%27%3ED1%3C/text%3E%3C/svg%3E">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#f2f3f5; --panel:#fff; --sunk:#f7f8fa; --ink:#1f2933; --muted:#6b7480; --line:#dde1e6; --line-2:#c9ced5;
+  --brand:#0e2a4a; --brand-2:#163a63; --accent:#1d64a8;
+  --good:#1e7a46; --good-soft:#e6f2ea; --warn:#8a5a00; --warn-soft:#fbf3e2; --bad:#b42318; --bad-soft:#fbeae8;
+  --in:#fffbea; --f:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif; color-scheme:light;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 var(--f);padding:0 0 40px;overflow-x:hidden}
+.wrap{max-width:1360px;margin:0 auto;display:grid;gap:14px;padding:0 16px}
+h1,h2,h3{margin:0;font-weight:600}
+h1{font-size:1.05rem;font-weight:400}
+h2{font-size:1.02rem}
+.muted{color:var(--muted)} .small{font-size:.82rem} .num{font-variant-numeric:tabular-nums}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border-radius:3px;border:1px solid var(--line-2);background:#fff;padding:6px 12px;font-weight:600;font-size:.86rem}
+button:hover{background:var(--sunk)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.primary:hover{background:#17558f}
+button.danger{color:var(--bad)}
+button.link{border:0;background:none;padding:0;color:var(--accent);text-decoration:underline;font-weight:600}
+button:disabled{opacity:.5;cursor:not-allowed}
+input[type=text],input[type=number],input[type=date],select{background:#fff;border:1px solid var(--line-2);border-radius:3px;padding:6px 8px;min-width:0}
+input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+/* top bar */
+header.top{display:flex;flex-wrap:wrap;gap:10px 20px;align-items:flex-end;justify-content:space-between;background:var(--brand);color:#fff;margin-inline:calc(50% - 50vw);padding:12px max(16px,calc(50vw - 50%)) 14px;border-bottom:3px solid var(--accent)}
+.brand{display:flex;gap:12px;align-items:center;align-self:center}
+.brand .logo{font-weight:700;font-size:1.25rem;letter-spacing:-.02em;padding-right:12px;border-right:1px solid rgba(255,255,255,.3);line-height:1}
+.brand h1{color:#dbe4ef}
+.switch{display:inline-flex;border:1px solid rgba(255,255,255,.35);border-radius:3px;overflow:hidden;margin-left:6px}
+.switch a,.switch span{padding:4px 10px;font-size:.8rem;font-weight:600;color:#dbe4ef;text-decoration:none}
+.switch span{background:#fff;color:var(--brand)}
+.switch a:hover{background:rgba(255,255,255,.12)}
+.ctrls{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end}
+.ctrls label{display:grid;gap:3px;font-size:.75rem;color:#b9c6d6;font-weight:600}
+.ctrls select,.ctrls input{border-color:transparent;color:var(--ink);background:#fff}
+header.top button{background:transparent;color:#fff;border-color:rgba(255,255,255,.45)}
+header.top button:hover{background:rgba(255,255,255,.1)}
+.status{display:inline-block;font-size:.75rem;font-weight:600;padding:2px 8px;border-radius:2px;align-self:center}
+.status.open{background:#f0c75e;color:#3d2b00}.status.closed{background:#cfe8d8;color:#14532d}
+nav.tabs{display:flex;border-bottom:1px solid var(--line-2);overflow-x:auto;background:#fff;margin-inline:calc(50% - 50vw);padding:0 max(16px,calc(50vw - 50%))}
+nav.tabs button{border:none;background:none;border-bottom:2px solid transparent;border-radius:0;padding:11px 14px;color:var(--muted);white-space:nowrap}
+nav.tabs button:hover{color:var(--ink);background:none}
+nav.tabs button[aria-selected=true]{color:var(--brand);border-bottom-color:var(--accent)}
+.panel{background:#fff;border:1px solid var(--line);border-radius:4px;padding:16px;display:grid;gap:12px;min-width:0}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.spread{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center}
+.notice{border-radius:3px;padding:10px 14px;font-size:.88rem;display:grid;gap:4px;border:1px solid var(--line);border-left-width:4px;background:#fff}
+.notice.warn{background:#fffaf0;border-color:#ecd9a8;border-left-color:#d49a1a}
+.notice.info{border-left-color:var(--accent)}
+.demo-banner{background:#fffaf0;border-color:#ecd9a8;border-left-color:#d49a1a}
+/* cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.card{background:#fff;border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:grid;gap:4px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+.card .l{font-size:.8rem;color:var(--muted)} .card .v{font-size:1.5rem;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.15} .card .s{font-size:.78rem;color:var(--muted)}
+.card.hero{background:var(--brand);border-color:var(--brand)} .card.hero .l,.card.hero .s{color:#b9c6d6} .card.hero .v{color:#fff;font-size:1.8rem}
+.card.cash{border-color:#d49a1a;box-shadow:inset 4px 0 0 #d49a1a}
+/* tables */
+.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:4px;background:#fff}
+.tablewrap.tall{max-height:72vh}
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:.85rem}
+th,td{padding:7px 9px;text-align:left;border-bottom:1px solid #eceef1;white-space:nowrap;vertical-align:middle}
+thead th{position:sticky;top:0;z-index:2;background:#f4f5f7;color:#3c4652;font-size:.78rem;font-weight:600;border-bottom:1px solid var(--line-2);white-space:normal;line-height:1.25}
+thead th.in{background:#f6edc9}
+td.r,th.r{text-align:right} td.c,th.c{text-align:center}
+td.num,.r.num{font-variant-numeric:tabular-nums}
+tbody tr:nth-child(even) td{background:#fafbfc}
+tbody tr:hover td{background:#f1f6fb}
+td.in{background:var(--in)!important;padding:3px 4px}
+td.in input,td.in select{width:100%;border-color:transparent;background:transparent;padding:4px 5px}
+td.in input:hover,td.in select:hover{border-color:#e2cf7c}
+td.in input[type=number]{text-align:right;min-width:62px}
+td.in input.wide{min-width:180px}
+td.in input[type=date]{min-width:128px}
+td.in select{min-width:132px}
+.stick{position:sticky;left:0;z-index:1;background:#fff}
+thead .stick{z-index:3;background:#f4f5f7}
+tbody tr:nth-child(even) td.stick{background:#fafbfc}
+tr.total td{font-weight:700;background:#eef1f5!important;border-top:1px solid var(--line-2)}
+tr.grp td{background:#f8f9fb!important;font-weight:600;font-size:.82rem}
+td.net{font-weight:700;color:var(--brand)}
+td.neg{color:var(--bad)}
+.ar{direction:rtl;text-align:right;font-family:"Segoe UI",Tahoma,Arial,sans-serif}
+.chip{display:inline-block;font-size:.74rem;font-weight:600;padding:1px 6px;border-radius:2px;white-space:nowrap;border:1px solid transparent}
+.chip.cash{background:#fbf3e2;color:#8a5a00;border-color:#ecd9a8}
+.chip.bank{background:#e7eef7;color:var(--brand-2);border-color:#c8d7ea}
+.chip.insta{background:#efe9f7;color:#5b3a8a;border-color:#dccfee}
+.chip.good{background:var(--good-soft);color:var(--good);border-color:#c5e1cf}
+.chip.warn{background:var(--warn-soft);color:var(--warn);border-color:#ecd9a8}
+.chip.plain{background:#f1f2f4;color:#4b5563;border-color:#e0e3e7}
+.chip.bad{background:var(--bad-soft);color:var(--bad);border-color:#f0c4be}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.8rem;color:var(--muted)}
+.legend i{display:inline-block;width:14px;height:12px;border:1px solid #e2cf7c;background:var(--in);vertical-align:-2px;margin-right:5px}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px}
+.empty{padding:26px;text-align:center;color:var(--muted)}
+.field{display:grid;gap:3px}.field>span{font-size:.75rem;color:var(--muted);font-weight:600}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;background:var(--brand);color:#fff;padding:8px 16px;border-radius:3px;font-size:.86rem;z-index:20;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+details summary{cursor:pointer;font-weight:600;color:var(--brand)}
+.bar{display:flex;height:10px;border-radius:5px;overflow:hidden;background:#eef0f3}
+.bar span{display:block;height:100%}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
+@media print{header.top .ctrls,nav.tabs,.notice,.no-print{display:none!important}.tablewrap{overflow:visible;max-height:none}}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<div class="toast" id="toast" hidden></div>
+<input type="file" id="restoreFile" accept=".json,application/json" hidden>
+<input type="file" id="importFile" accept=".xlsx,.xls,.csv" hidden>
+<script type="application/json" id="demoData">{"app":"day1-salary","version":1,"settings":{"daysBasis":30,"holidayExtraDays":2,"extraDayMultiplier":1,"cashCollector":"Amira","rounding":1},"employees":[{"id":"e1","name":"Nadia Farouk","arabic":"نادية فاروق عبد الحميد","role":"Cruise Manager","basic":22000,"method":"Bank transfer","batch":"Batch 1","status":"active"},{"id":"e2","name":"Karim Mansour","arabic":"كريم منصور السيد","role":"Cruise Manager","basic":20000,"method":"Bank transfer","batch":"Batch 1","status":"active"},{"id":"e3","name":"Salma Youssef","arabic":"سلمى يوسف إبراهيم","role":"Cruise Manager","basic":16000,"method":"Instapay","batch":"Batch 2","status":"active","startDate":"2026-09-01"},{"id":"e4","name":"Omar Shafik","arabic":"عمر شفيق محمود","role":"Cruise Manager","basic":20000,"method":"Bank transfer","batch":"Batch 1","status":"active"},{"id":"e5","name":"Ethan Cole","arabic":"مروان عادل فتحي","role":"Sales Agent","basic":18000,"method":"Bank transfer","batch":"Batch 1","status":"active"},{"id":"e6","name":"Grace Holden","arabic":"ريهام سامي عبد الله","role":"Sales Agent","basic":18000,"method":"Instapay","batch":"Batch 1","status":"active"},{"id":"e7","name":"Liam Carter","arabic":"حازم رأفت جمال","role":"Sales Agent","basic":16000,"method":"Cash","batch":"Batch 2","status":"active"},{"id":"e8","name":"Sophie Lane","arabic":"دينا ماهر حسين","role":"Sales Agent","basic":16000,"method":"Bank transfer","batch":"Batch 1","status":"active"},{"id":"e9","name":"Lucas Grant","arabic":"باسم نبيل عزت","role":"Sales Agent","basic":13000,"method":"Cash","batch":"Batch 2","status":"active"},{"id":"e10","name":"Ava Sinclair","arabic":"ياسمينة طارق رشدي","role":"Sales Agent","basic":16000,"method":"Bank transfer","batch":"Batch 2","status":"left","lastDay":"2026-10-15"},{"id":"e11","name":"Hannah Ward","arabic":"مها جلال الشربيني","role":"Lead / Manager","basic":45000,"method":"Bank transfer","batch":"Batch 1","status":"active"},{"id":"e12","name":"Mona Adel","arabic":"منى عادل كامل","role":"Service","basic":15000,"method":"Instapay","batch":"Batch 1","status":"active"},{"id":"e13","name":"Tarek Samir","arabic":"طارق سمير عوض","role":"Back office","basic":14000,"method":"Cash","batch":"Batch 2","status":"active"},{"id":"e14","name":"Laila Nasr","arabic":"ليلى نصر الدين فؤاد","role":"Office Admin","basic":13000,"method":"Bank transfer","batch":"Batch 1","status":"active"}],"months":{"2026-09":{"id":"2026-09","closed":true,"inputs":{"e3":{"daysDeducted":"","notes":"Joined 1 Sep, full month","status":"Paid","payDate":"2026-10-03"},"e8":{"daysDeducted":"1","notes":"Unpaid day 14 Sep","status":"Paid","payDate":"2026-10-01"},"e13":{"bonus":"1000","notes":"Month-end close cover","status":"Paid","payDate":"2026-10-03"},"e1":{"status":"Paid","payDate":"2026-10-01"},"e2":{"status":"Paid","payDate":"2026-10-01"},"e4":{"status":"Paid","payDate":"2026-10-01"},"e5":{"status":"Paid","payDate":"2026-10-01"},"e6":{"status":"Paid","payDate":"2026-10-01"},"e7":{"status":"Paid","payDate":"2026-10-03"},"e9":{"status":"Paid","payDate":"2026-10-03"},"e10":{"status":"Paid","payDate":"2026-10-03"},"e11":{"status":"Paid","payDate":"2026-10-01"},"e12":{"status":"Paid","payDate":"2026-10-01"},"e14":{"status":"Paid","payDate":"2026-10-01"}},"snapshot":{"rows":[{"id":"e1","name":"Nadia Farouk","arabic":"نادية فاروق عبد الحميد","role":"Cruise Manager","basic":22000,"daily":733.3333333333334,"dDed":0,"amtDed":0,"hol":0,"holPay":0,"xd":0,"xPay":0,"bonus":0,"loan":0,"net":22000,"method":"Bank transfer","batch":"Batch 1","status":"Paid","payDate":"2026-10-01","notes":"","flags":[]},{"id":"e2","name":"Karim Mansour","arabic":"كريم منصور السيد","role":"Cruise Manager","basic":20000,"daily":666.6666666666666,"dDed":0,"amtDed":0,"hol":0,"holPay":0,"xd":0,"xPay":0,"bonus":0,"loan":0,"net":20000,"method":"Bank transfer","batch":"Batch 1","status":"Paid","payDate":"2026-10-01","notes":"","flags":[]},{"id":"e3","name":"Salma Youssef","arabic":"سلمى يوسف إبراهيم","role":"Cruise Manager","basic":16000,"daily":533.3333333333334,"dDed":0,"amtDed":0,"hol":0,"holPay":0,"xd":0,"xPay":0,"bonus":0,"loan":0,"net":16000,"method":"Instapay","batch":"Batch 2","status":"Paid","payDate":"2026-10-03","notes":"Joined 1 Sep, full month","flags":[["warn","Joined 01 Sep"]]},{"id":"e4","name":"Omar Shafik","arabic":"عمر شفيق محمود","role":"Cruise Manager","basic":20000,"daily":666.6666666666666,"dDed":0,"amtDed":0,"hol":0,"holPay":0,"xd":0,"xPay":0,"bonus":0,"loan":0,"net":20000,"method":"Bank transfer","batch":"Batch 1","status":"Paid","payDate":"2026-10-01","notes":"","flags":[]},{"id":"e5","name":"Ethan Cole","arabic":"مروان عادل فتحي","role":"Sales Agent","basic":18000,"daily":600,"dDed":0,"amtDed":0,"hol":0,"holPay":0,"xd":0,"xPay":0,"bonus":0,"loan":0,"net":18000,"method":"Bank transfer","batch":"Batch 1","status":"Paid","payDate":"2026-10-01","notes":"","flags":[]},{"id":"e6","name":"Grace Holden","arabic":"ريهام سامي عبد الله","role":"Sales Agent","basic":18000,"daily":600,"dDed":0,"amtDed":0,"hol":0,"holPay":0,"xd":0,"xPay":0,"bonus":0,"loan":0,"net":18000,"method":"Instapay","batch":"Batch 1","status":"Paid","payDate":"2026-10-01","notes":"","flags":[]},{"id":"e7","name":"Liam Carter","arabic":"حازم رأفت جمال","role":"Sales Agent","basic":16000,"daily":533.3333333333334,"dDed":0,"amtDed":0,"hol":0,"holPay":0,"xd":0,"xPay":0,"bonus":0,"loan":0,"net":16000,"method":"Cash","batch":"Batch 2","status":"Paid","payDate":"2026-10-03","notes":"","flags":[]},{"id":"e8","name":"Sophie Lane","arabic":"دينا ماهر حسين","role":"Sales Agent","basic":16000,"daily":533.3333333333334,"dDed":1,"amtDed":533.3333333333334,"hol":0,"holPay":0,"xd":0,"xPay":0,"bonus":0,"loan":0,"net":15467,"method":"Bank transfer","batch":"Batch 1","status":"Paid","payDate":"2026-10-01","notes":"Unpaid day 14 Sep","flags":[]},{"id":"e9","name":"Lucas Grant","arabic":"باسم نبيل عزت","role":"Sales Agent","basic":13000,"daily":433.3333333333333,"dDed":0,"amtDed":0,"hol":0,"holPay":0,"xd":0,"xPay":0,"bonus":0,"loan":0,"net":13000,"method":"Cash","batch":"Batch 2","status":"Paid","payDate":"2026-10-03","notes":"","flags":[]},{"id":"e10","name":"Ava Sinclair","arabic":"ياسمينة طارق رشدي","role":"Sales Agent","basic":16000,"daily":533.3333333333334,"dDed":0,"amtDed":0,"hol":0,"holPay":0,"xd":0,"xPay":0,"bonus":0,"loan":0,"net":16000,"method":"Bank transfer","batch":"Batch 2","status":"Paid","payDate":"2026-10-03","notes":"","flags":[]},{"id":"e11","name":"Hannah Ward","arabic":"مها جلال الشربيني","role":"Lead / Manager","basic":45000,"daily":1500,"dDed":0,"amtDed":0,"hol":0,"holPay":0,"xd":0,"xPay":0,"bonus":0,"loan":0,"net":45000,"method":"Bank transfer","batch":"Batch 1","status":"Paid","payDate":"2026-10-01","notes":"","flags":[]},{"id":"e12","name":"Mona Adel","arabic":"منى عادل كامل","role":"Service","basic":15000,"daily":500,"dDed":0,"amtDed":0,"hol":0,"holPay":0,"xd":0,"xPay":0,"bonus":0,"loan":0,"net":15000,"method":"Instapay","batch":"Batch 1","status":"Paid","payDate":"2026-10-01","notes":"","flags":[]},{"id":"e13","name":"Tarek Samir","arabic":"طارق سمير عوض","role":"Back office","basic":14000,"daily":466.6666666666667,"dDed":0,"amtDed":0,"hol":0,"holPay":0,"xd":0,"xPay":0,"bonus":1000,"loan":0,"net":15000,"method":"Cash","batch":"Batch 2","status":"Paid","payDate":"2026-10-03","notes":"Month-end close cover","flags":[]},{"id":"e14","name":"Laila Nasr","arabic":"ليلى نصر الدين فؤاد","role":"Office Admin","basic":13000,"daily":433.3333333333333,"dDed":0,"amtDed":0,"hol":0,"holPay":0,"xd":0,"xPay":0,"bonus":0,"loan":0,"net":13000,"method":"Bank transfer","batch":"Batch 1","status":"Paid","payDate":"2026-10-01","notes":"","flags":[]}],"batches":["Batch 1","Batch 2"],"totals":{"basic":262000,"ded":533.3333333333334,"hol":0,"xp":0,"bonus":1000,"loan":0,"net":262467,"cash":44000,"paid":262467,"holDays":0,"dedDays":1}},"closedAt":"2026-10-21T13:09:53.388Z"},"2026-10":{"id":"2026-10","closed":false,"inputs":{"e1":{"holidays":"1","notes":"Worked 6 Oct (Armed Forces Day)","status":"Approved"},"e2":{"holidays":"1","loan":"2000","notes":"Worked 6 Oct. Loan instalment 2 of 5","status":"Approved"},"e5":{"holidays":"1","bonus":"1500","notes":"Worked 6 Oct. Top seller bonus","status":"Approved"},"e7":{"daysDeducted":"2","notes":"2 no-show days, see warning letter","status":"Pending"},"e8":{"daysDeducted":"0.5","notes":"Lateness deduction","status":"Approved"},"e9":{"holidays":"1","extraDays":"1","notes":"Worked 6 Oct and covered a rest day","status":"Pending"},"e10":{"daysDeducted":"15","notes":"Leaver, last day 15 Oct","status":"Pending"},"e12":{"bonus":"1000","notes":"Weekend escalations cover","status":"Approved"},"e13":{"bonus":"3000","notes":"Covered month-end close","status":"Pending"},"e14":{"notes":"Joined from agency, check contract","status":"Approved"},"e3":{"status":"Pending"},"e4":{"status":"Approved"},"e6":{"status":"Approved"},"e11":{"status":"Approved"}}}}}</script>
+<script>
+"use strict";
+/* Day1 Base Salary. Data is kept in this browser only (localStorage). Use Download backup to keep a copy. */
+const DEMO = new URLSearchParams(location.search).has("demo");
+const KEY = DEMO ? "day1.salary.demo.v1" : "day1.salary.v1";
+const METHODS = ["Bank transfer","Instapay","Cash"];
+const STATUSES = ["Pending","Approved","Paid","On hold"];
+const BATCHES = ["Batch 1","Batch 2","Batch 3"];
+const DEFAULT_SETTINGS = { daysBasis:30, holidayExtraDays:2, extraDayMultiplier:1, cashCollector:"Amira", rounding:1 };
+
+/* ---------- helpers ---------- */
+const $=(s,r=document)=>r.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const norm=s=>String(s??"").toLowerCase().replace(/\s+/g," ").trim();
+const clone=o=>JSON.parse(JSON.stringify(o));
+const fmt=(n,d=0)=>(n==null||isNaN(n))?"":Number(n).toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
+const egp=n=>fmt(Math.round(n||0));
+function num(v){ if(v==null||v==="") return null; if(typeof v==="number") return isFinite(v)?v:null; const n=parseFloat(String(v).replace(/[,\sEGP]/gi,"")); return isNaN(n)?null:n; }
+const monthLabel=id=>{ const [y,m]=id.split("-").map(Number); return new Date(Date.UTC(y,m-1,1)).toLocaleString("en-GB",{month:"long",year:"numeric",timeZone:"UTC"}); };
+const nextMonth=id=>{ let [y,m]=id.split("-").map(Number); m++; if(m>12){m=1;y++;} return `${y}-${String(m).padStart(2,"0")}`; };
+const thisMonth=()=>{ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`; };
+const uid=()=>Math.random().toString(36).slice(2,10);
+function toast(t){ const el=$("#toast"); el.textContent=t; el.hidden=false; clearTimeout(toast.t); toast.t=setTimeout(()=>el.hidden=true,2800); }
+function saveFile(name,blob){ const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500); }
+const methodChip=m=>`<span class="chip ${m==="Cash"?"cash":m==="Instapay"?"insta":"bank"}">${esc(m||"Bank transfer")}</span>`;
+const statusChip=s=>`<span class="chip ${s==="Paid"?"good":s==="On hold"?"bad":s==="Approved"?"bank":"plain"}">${esc(s||"Pending")}</span>`;
+
+/* ---------- storage ---------- */
+function blank(){ return {app:"day1-salary",version:1,settings:clone(DEFAULT_SETTINGS),employees:[],months:{}}; }
+function load(){
+  try{ const raw=localStorage.getItem(KEY); if(raw) return fix(JSON.parse(raw)); }catch(e){}
+  if(DEMO){ try{ return fix(JSON.parse($("#demoData").textContent)); }catch(e){} }
+  return blank();
+}
+function fix(d){ const b=blank(); b.settings={...b.settings,...(d.settings||{})}; b.employees=d.employees||[]; b.months=d.months||{}; return b; }
+let saveOK=true;
+function save(){ try{ localStorage.setItem(KEY,JSON.stringify(D)); saveOK=true; }catch(e){ saveOK=false; toast("This browser couldn't save. Download a backup now."); } }
+const D=load();
+const UI={ tab:(()=>{ try{return localStorage.getItem("day1.salary.tab")||"payroll";}catch(e){return "payroll";} })(), month:Object.keys(D.months).sort().pop()||null, filter:"" };
+const M=()=>UI.month?D.months[UI.month]:null;
+
+/* ---------- calculation ---------- */
+function activeIn(e,mid){
+  const first=mid+"-01", last=nextMonth(mid)+"-00";
+  if(e.startDate && e.startDate>last) return false;
+  if(e.status==="left" && (!e.lastDay || e.lastDay<first)) return false;
+  return true;
+}
+function compute(month){
+  const st=D.settings, basis=num(st.daysBasis)||30, hx=num(st.holidayExtraDays)??2, xm=num(st.extraDayMultiplier)??1;
+  const rows=[];
+  for(const e of D.employees){
+    if(!activeIn(e,month.id) && !month.inputs?.[e.id]) continue;
+    const i=month.inputs?.[e.id]||{};
+    const basic=num(i.basic)??num(e.basic)??0;
+    const daily=basic/basis;
+    const dDed=num(i.daysDeducted)||0, hol=num(i.holidays)||0, xd=num(i.extraDays)||0;
+    const amtDed=dDed*daily, holPay=hol*daily*hx, xPay=xd*daily*xm;
+    const bonus=num(i.bonus)||0, loan=num(i.loan)||0;
+    const net=Math.round(basic-amtDed+holPay+xPay+bonus-loan);
+    const flags=[];
+    if(e.startDate && e.startDate.slice(0,7)===month.id) flags.push(["warn","Joined "+e.startDate.slice(8)+" "+monthLabel(month.id).split(" ")[0].slice(0,3)]);
+    if(e.status==="left" && e.lastDay && e.lastDay.slice(0,7)===month.id) flags.push(["warn","Last day "+e.lastDay.slice(8)+" "+monthLabel(month.id).split(" ")[0].slice(0,3)]);
+    if(net<0) flags.push(["bad","Net below zero"]);
+    if(i.basic!=null && i.basic!=="" && num(i.basic)!==num(e.basic)) flags.push(["plain","Basic changed this month"]);
+    rows.push({id:e.id, name:e.name, arabic:e.arabic||"", role:e.role||"", basic, daily, dDed, amtDed, hol, holPay, xd, xPay, bonus, loan, net,
+      method:i.method||e.method||"Bank transfer", batch:i.batch||e.batch||"Batch 1", status:i.status||"Pending", payDate:i.payDate||"", notes:i.notes||"", flags});
+  }
+  const sum=(k,l=rows)=>l.reduce((a,r)=>a+(r[k]||0),0);
+  const byMethod={}; for(const m of METHODS) byMethod[m]=rows.filter(r=>r.method===m);
+  const batches=[...new Set(rows.map(r=>r.batch))].sort();
+  return {rows, sum, byMethod, batches, totals:{basic:sum("basic"),ded:sum("amtDed"),hol:sum("holPay"),xp:sum("xPay"),bonus:sum("bonus"),loan:sum("loan"),net:sum("net"),
+    cash:sum("net",byMethod.Cash), paid:sum("net",rows.filter(r=>r.status==="Paid")), holDays:sum("hol"), dedDays:sum("dDed")}};
+}
+const hydrate=s=>({...s, sum:(k,l=s.rows)=>l.reduce((a,r)=>a+(r[k]||0),0), byMethod:Object.fromEntries(METHODS.map(m=>[m,s.rows.filter(r=>r.method===m)]))});
+function calc(){ const m=M(); if(!m) return null; return m.closed&&m.snapshot? hydrate(m.snapshot) : compute(m); }
+
+/* ---------- render ---------- */
+function render(){
+  const ae=document.activeElement;
+  if(ae && ae.closest && ae.closest("#app") && /INPUT|SELECT/.test(ae.tagName) && ae.type!=="file" && ae.type!=="checkbox" && ae.dataset.live!=="1"){ render.q=true; return; }
+  render.q=false;
+  const sy=scrollY, m=M(), c=calc();
+  $("#app").innerHTML = header(m) + (m? tabs()+body(c) : firstRun());
+  scrollTo(0,sy);
+}
+document.addEventListener("focusout",()=>setTimeout(()=>{ if(render.q) render(); },0));
+function header(m){
+  const months=Object.keys(D.months).sort();
+  return `<header class="top">
+    <div class="brand"><span class="logo">Day1</span><h1>Base Salary</h1>
+      <span class="switch" role="navigation" aria-label="Switch tool"><a href="./${DEMO?"?demo":""}">Commission</a><span aria-current="page">Base salary</span></span></div>
+    <div class="ctrls">
+      ${months.length?`<label>Pay period<select data-act="month">${months.map(id=>`<option value="${id}" ${id===UI.month?"selected":""}>${monthLabel(id)}</option>`).join("")}</select></label>`:""}
+      ${m?`<span class="status ${m.closed?"closed":"open"}">${m.closed?"Closed":"Open"}</span>${m.closed?`<button data-act="reopen">Reopen month</button>`:`<button data-act="close">Close month</button>`}`:""}
+      <button data-act="newmonth">New month</button>
+      <button data-act="backup">Download backup</button>
+      <button data-act="restore">Restore backup</button>
+    </div>
+  </header>
+  ${DEMO?`<div class="notice demo-banner"><div class="spread"><span><b>Demo mode.</b> Fictional employees and figures for walkthroughs. Your real data is kept separately and is not touched here.</span><span class="row"><button data-act="resetdemo">Reset demo</button><a href="./salary.html">Open the real tool</a></span></div></div>`:""}
+  ${saveOK?"":`<div class="notice warn">This browser refused to save. Download a backup before closing the tab.</div>`}`;
+}
+function firstRun(){
+  return `<section class="panel"><h2>Start here</h2>
+  <p>Everything is saved in this browser only. Nothing is sent anywhere.</p>
+  <ol><li>Add your employees on the Employees tab, or import them from your current salary sheet.</li><li>Create the pay period with <b>New month</b>.</li><li>Fill in deductions, holidays, bonuses and loans on Payroll. Cash amounts collect on Cash & transfers.</li></ol>
+  <div class="row"><button class="primary" data-act="newmonth">Start ${monthLabel(thisMonth())}</button><button data-act="restore">Restore backup</button></div></section>`;
+}
+const TABS=[["payroll","Payroll"],["cash","Cash & transfers"],["employees","Employees"],["summary","Summary"],["settings","Settings"]];
+function tabs(){ return `<nav class="tabs" role="tablist">${TABS.map(([k,l])=>`<button role="tab" aria-selected="${UI.tab===k}" data-act="tab" data-tab="${k}">${l}</button>`).join("")}</nav>`; }
+function body(c){
+  if(UI.tab==="cash") return cashHTML(c);
+  if(UI.tab==="employees") return employeesHTML();
+  if(UI.tab==="summary") return summaryHTML(c);
+  if(UI.tab==="settings") return settingsHTML();
+  return payrollHTML(c);
+}
+
+/* ----- payroll ----- */
+function inCell(r,field,val,type="number",extra=""){
+  const m=M(); if(m.closed) return `<td class="${type==="number"?"r num":""}">${type==="number"?(num(val)?fmt(num(val),num(val)%1?1:0):""):esc(val||"")}</td>`;
+  return `<td class="in"><input type="${type}" ${type==="number"?'step="any" min="0"':""} data-act="inp" data-id="${r.id}" data-f="${field}" value="${esc(val??"")}" ${extra} aria-label="${esc(field+" for "+r.name)}"></td>`;
+}
+function selCell(r,field,val,opts){
+  const m=M(); if(m.closed) return `<td>${field==="method"?methodChip(val):field==="status"?statusChip(val):esc(val)}</td>`;
+  return `<td class="in"><select data-act="inp" data-id="${r.id}" data-f="${field}" aria-label="${esc(field+" for "+r.name)}">${opts.map(o=>`<option ${o===val?"selected":""}>${esc(o)}</option>`).join("")}</select></td>`;
+}
+function payrollHTML(c){
+  const m=M(), st=D.settings, T=c.totals;
+  if(!c.rows.length) return `<section class="panel"><div class="empty"><h2>No employees for ${monthLabel(m.id)}</h2><p>Add people on the Employees tab, or import them from your salary sheet.</p><button class="primary" data-act="tab" data-tab="employees">Go to Employees</button></div></section>`;
+  const f=norm(UI.filter); const list=c.rows.filter(r=>!f || norm(r.name).includes(f) || norm(r.arabic).includes(f));
+  const inp=id=>m.inputs?.[id]||{};
+  return `
+  <section class="cards">
+    <div class="card hero"><span class="l">Net salaries to pay</span><span class="v num">${egp(T.net)}</span><span class="s">${c.rows.length} employees · ${monthLabel(m.id)}</span></div>
+    <div class="card cash"><span class="l">Cash to transfer to ${esc(st.cashCollector||"Amira")}</span><span class="v num">${egp(T.cash)}</span><span class="s">${c.byMethod.Cash.length} paid in cash</span></div>
+    <div class="card"><span class="l">Deductions</span><span class="v num">${egp(T.ded)}</span><span class="s">${fmt(T.dedDays,T.dedDays%1?1:0)} days</span></div>
+    <div class="card"><span class="l">Public holiday pay</span><span class="v num">${egp(T.hol)}</span><span class="s">${fmt(T.holDays)} holiday days worked</span></div>
+    <div class="card"><span class="l">Bonuses</span><span class="v num">${egp(T.bonus)}</span><span class="s">loans repaid ${egp(T.loan)}</span></div>
+  </section>
+  <section class="panel">
+    <div class="spread"><div><h2>Payroll · ${monthLabel(m.id)}</h2><p class="small muted">Day rate = basic ÷ ${st.daysBasis}. Each public holiday worked adds ${st.holidayExtraDays} extra days' pay (3 days in total for that day). Net = basic − deductions + holiday pay + extra days + bonus − loan.</p></div>
+      <div class="row no-print"><input type="text" placeholder="Search name" data-act="filter" data-live="1" value="${esc(UI.filter)}" style="width:170px"><button data-act="xlsx">Download Excel</button><button data-act="copy">Copy table</button></div></div>
+    <div class="legend"><span><i></i>Yellow cells are typed by you for this month</span></div>
+    <div class="tablewrap tall"><table>
+      <thead><tr><th class="stick">Eng Ref Name</th><th class="ar">Full Arabic name (Bank)</th><th class="r">Basic</th>
+        <th class="r in">Days Deducted</th><th class="r">Amount Deducted</th><th class="r in">Holidays Worked</th><th class="r">Holiday Pay</th><th class="r in">Extra Days</th><th class="r">Extra Pay</th>
+        <th class="r in">Bonus</th><th class="r in">Loan</th><th class="r">Net Total</th><th class="in">Payment Method</th><th class="in">Batch</th><th class="in">Status</th><th class="in">Payment Date</th><th class="in">Marcus Notes</th><th>Checks</th></tr></thead>
+      <tbody>${list.map(r=>{ const i=inp(r.id); return `<tr>
+        <td class="stick"><strong>${esc(r.name)}</strong>${r.role?`<div class="small muted">${esc(r.role)}</div>`:""}</td><td class="ar">${esc(r.arabic)}</td>
+        <td class="r num">${egp(r.basic)}</td>
+        ${inCell(r,"daysDeducted",i.daysDeducted)}<td class="r num ${r.amtDed?"neg":""}">${r.amtDed?"−"+egp(r.amtDed):""}</td>
+        ${inCell(r,"holidays",i.holidays)}<td class="r num">${r.holPay?egp(r.holPay):""}</td>
+        ${inCell(r,"extraDays",i.extraDays)}<td class="r num">${r.xPay?egp(r.xPay):""}</td>
+        ${inCell(r,"bonus",i.bonus)}${inCell(r,"loan",i.loan)}
+        <td class="r num net ${r.net<0?"neg":""}">${egp(r.net)}</td>
+        ${selCell(r,"method",r.method,METHODS)}${selCell(r,"batch",r.batch,BATCHES)}${selCell(r,"status",r.status,STATUSES)}
+        ${inCell(r,"payDate",i.payDate,"date")}${inCell(r,"notes",i.notes,"text",'class="wide" placeholder="Notes for Marcus"')}
+        <td>${r.flags.map(([k,t])=>`<span class="chip ${k}">${esc(t)}</span>`).join(" ")}</td></tr>`; }).join("")}
+      <tr class="total"><td class="stick">Total</td><td></td><td class="r num">${egp(T.basic)}</td><td class="r num">${fmt(T.dedDays,T.dedDays%1?1:0)}</td><td class="r num">${T.ded?"−"+egp(T.ded):""}</td><td class="r num">${fmt(T.holDays)}</td><td class="r num">${egp(T.hol)}</td><td></td><td class="r num">${egp(T.xp)}</td><td class="r num">${egp(T.bonus)}</td><td class="r num">${egp(T.loan)}</td><td class="r num">${egp(T.net)}</td><td colspan="6"></td></tr>
+      </tbody></table></div>
+    ${!m.closed?`<div class="row no-print"><span class="small muted">Set a status or payment date for everyone in a batch:</span>
+      <select id="bulkBatch">${["All",...BATCHES].map(b=>`<option>${b}</option>`).join("")}</select>
+      <select id="bulkStatus">${STATUSES.map(s=>`<option>${s}</option>`).join("")}</select>
+      <input type="date" id="bulkDate"><button data-act="bulk">Apply</button></div>`:`<p class="small muted">This month is closed, so the figures are locked. Reopen it to make changes.</p>`}
+  </section>`;
+}
+
+/* ----- cash & transfers ----- */
+function cashHTML(c){
+  const m=M(), st=D.settings, T=c.totals, who=st.cashCollector||"Amira";
+  const cash=c.byMethod.Cash.slice().sort((a,b)=>a.name.localeCompare(b.name));
+  const methodRow=mm=>{ const l=c.byMethod[mm]; return `<tr><td>${methodChip(mm)}</td><td class="r num">${l.length}</td><td class="r num">${egp(c.sum("net",l))}</td><td class="r num">${egp(c.sum("net",l.filter(r=>r.status==="Paid")))}</td><td class="r num">${egp(c.sum("net",l.filter(r=>r.status!=="Paid")))}</td></tr>`; };
+  const batches=[...new Set(c.rows.map(r=>r.batch))].sort();
+  return `
+  <section class="cards">
+    <div class="card cash"><span class="l">Cash to transfer to ${esc(who)}</span><span class="v num">${egp(T.cash)} EGP</span><span class="s">for ${cash.length} ${cash.length===1?"person":"people"} paid in cash</span></div>
+    <div class="card"><span class="l">Bank transfers</span><span class="v num">${egp(c.sum("net",c.byMethod["Bank transfer"]))}</span><span class="s">${c.byMethod["Bank transfer"].length} people</span></div>
+    <div class="card"><span class="l">Instapay</span><span class="v num">${egp(c.sum("net",c.byMethod.Instapay))}</span><span class="s">${c.byMethod.Instapay.length} people</span></div>
+    <div class="card hero"><span class="l">Total net salaries</span><span class="v num">${egp(T.net)}</span><span class="s">paid so far ${egp(T.paid)}</span></div>
+  </section>
+  <section class="panel">
+    <div class="spread"><div><h2>Cash to hand out · ${monthLabel(m.id)}</h2><p class="small muted">This is the amount to be transferred to ${esc(who)} so she can pay these people in cash. Change who collects the cash on Settings.</p></div>
+      <div class="row no-print"><button data-act="copycash">Copy cash list</button><button data-act="printcash">Print cash sheet</button></div></div>
+    ${cash.length?`<div class="tablewrap"><table>
+      <thead><tr><th>Eng Ref Name</th><th class="ar">Full Arabic name</th><th>Batch</th><th class="r">Net cash</th><th>Status</th><th>Payment date</th><th>Received by (signature)</th></tr></thead>
+      <tbody>${cash.map(r=>`<tr><td><strong>${esc(r.name)}</strong></td><td class="ar">${esc(r.arabic)}</td><td>${esc(r.batch)}</td><td class="r num net">${egp(r.net)}</td><td>${statusChip(r.status)}</td><td class="num">${esc(r.payDate)}</td><td style="min-width:160px"></td></tr>`).join("")}
+      <tr class="total"><td colspan="3">Total cash to transfer to ${esc(who)}</td><td class="r num">${egp(T.cash)}</td><td colspan="3"></td></tr></tbody></table></div>`
+      :`<div class="empty">No one is paid in cash this month. Set Payment Method to Cash on the Payroll tab.</div>`}
+  </section>
+  <div class="two">
+    <section class="panel"><h2>By payment method</h2><div class="tablewrap"><table>
+      <thead><tr><th>Method</th><th class="r">People</th><th class="r">Net total</th><th class="r">Paid</th><th class="r">Still to pay</th></tr></thead>
+      <tbody>${METHODS.map(methodRow).join("")}<tr class="total"><td>Total</td><td class="r num">${c.rows.length}</td><td class="r num">${egp(T.net)}</td><td class="r num">${egp(T.paid)}</td><td class="r num">${egp(T.net-T.paid)}</td></tr></tbody></table></div></section>
+    <section class="panel"><h2>By batch</h2><div class="tablewrap"><table>
+      <thead><tr><th>Batch</th><th class="r">People</th><th class="r">Bank</th><th class="r">Instapay</th><th class="r">Cash</th><th class="r">Total</th></tr></thead>
+      <tbody>${batches.map(b=>{ const l=c.rows.filter(r=>r.batch===b); const s=mm=>egp(c.sum("net",l.filter(r=>r.method===mm))); return `<tr><td><strong>${esc(b)}</strong></td><td class="r num">${l.length}</td><td class="r num">${s("Bank transfer")}</td><td class="r num">${s("Instapay")}</td><td class="r num">${s("Cash")}</td><td class="r num"><strong>${egp(c.sum("net",l))}</strong></td></tr>`; }).join("")}
+      <tr class="total"><td>Total</td><td class="r num">${c.rows.length}</td><td class="r num">${egp(c.sum("net",c.byMethod["Bank transfer"]))}</td><td class="r num">${egp(c.sum("net",c.byMethod.Instapay))}</td><td class="r num">${egp(T.cash)}</td><td class="r num">${egp(T.net)}</td></tr></tbody></table></div></section>
+  </div>`;
+}
+
+/* ----- employees ----- */
+function employeesHTML(){
+  const ppl=D.employees, m=M();
+  const sel=(i,f,v,opts)=>`<td class="in"><select data-act="emp" data-i="${i}" data-f="${f}">${opts.map(o=>Array.isArray(o)?o:[o,o]).map(([val,l])=>`<option value="${esc(val)}" ${String(v??"")===String(val)?"selected":""}>${esc(l)}</option>`).join("")}</select></td>`;
+  const txt=(i,f,v,type="text",extra="")=>`<td class="in"><input type="${type}" ${type==="number"?'step="any" min="0"':""} data-act="emp" data-i="${i}" data-f="${f}" value="${esc(v??"")}" ${extra}></td>`;
+  const active=ppl.filter(e=>e.status!=="left");
+  return `<section class="panel">
+    <div class="spread"><div><h2>Employees</h2><p class="small muted">${active.length} active · basic salary is the net monthly amount for a full ${D.settings.daysBasis}-day month. Payment method and batch here are the defaults for each new month.</p></div>
+      <div class="row"><button data-act="import">Import from salary sheet</button><button class="primary" data-act="addemp">+ Add employee</button></div></div>
+    <div class="tablewrap tall"><table>
+      <thead><tr><th class="stick">Eng Ref Name</th><th class="ar">Full Arabic name (Bank)</th><th>Role</th><th class="r">Basic (net) EGP</th><th>Default method</th><th>Default batch</th><th>Status</th><th>Start date</th><th>Last working day</th><th></th></tr></thead>
+      <tbody>${ppl.map((e,i)=>`<tr>
+        <td class="in stick"><input type="text" data-act="emp" data-i="${i}" data-f="name" value="${esc(e.name)}" style="font-weight:600;min-width:150px"></td>
+        ${txt(i,"arabic",e.arabic,"text",'dir="rtl" class="wide"')}${txt(i,"role",e.role)}${txt(i,"basic",e.basic,"number")}
+        ${sel(i,"method",e.method||"Bank transfer",METHODS)}${sel(i,"batch",e.batch||"Batch 1",BATCHES)}${sel(i,"status",e.status||"active",[["active","Active"],["left","Left"]])}
+        ${txt(i,"startDate",e.startDate,"date")}${txt(i,"lastDay",e.lastDay,"date")}
+        <td><button class="link danger" data-act="delemp" data-i="${i}">Remove</button></td></tr>`).join("")||`<tr><td colspan="10" class="empty">No employees yet. Add them, or import your salary sheet.</td></tr>`}</tbody>
+    </table></div>
+    <p class="small muted">To change someone's salary from a given month, update Basic here before creating that month. Months already open keep the salary they started with only if it was typed on the Payroll tab; otherwise they follow this table until closed.</p>
+  </section>`;
+}
+
+/* ----- summary ----- */
+function summaryHTML(c){
+  const m=M(), T=c.totals, st=D.settings;
+  const parts=[["Bank transfer","#1d64a8"],["Instapay","#7a5195"],["Cash","#d49a1a"]];
+  const total=T.net||1;
+  const months=Object.keys(D.months).sort();
+  const hist=months.map(id=>{ const mo=D.months[id]; const cc=mo.closed&&mo.snapshot? hydrate(mo.snapshot) : compute(mo); return [id,cc.totals.net,cc.rows.length,mo.closed]; });
+  const maxH=Math.max(1,...hist.map(h=>h[1]));
+  return `<section class="cards">
+    <div class="card hero"><span class="l">Net salaries · ${monthLabel(m.id)}</span><span class="v num">${egp(T.net)}</span><span class="s">${c.rows.length} employees</span></div>
+    <div class="card"><span class="l">Basic salaries</span><span class="v num">${egp(T.basic)}</span><span class="s">before adjustments</span></div>
+    <div class="card"><span class="l">Added</span><span class="v num">+${egp(T.hol+T.xp+T.bonus)}</span><span class="s">holidays ${egp(T.hol)} · extra ${egp(T.xp)} · bonus ${egp(T.bonus)}</span></div>
+    <div class="card"><span class="l">Taken off</span><span class="v num">−${egp(T.ded+T.loan)}</span><span class="s">deductions ${egp(T.ded)} · loans ${egp(T.loan)}</span></div>
+    <div class="card cash"><span class="l">Cash to ${esc(st.cashCollector||"Amira")}</span><span class="v num">${egp(T.cash)}</span><span class="s">${c.byMethod.Cash.length} people</span></div>
+  </section>
+  <section class="panel"><div class="spread"><strong>How salaries are paid</strong><span class="small muted">${egp(T.net)} EGP</span></div>
+    <div class="bar">${parts.map(([k,col])=>`<span style="width:${c.sum("net",c.byMethod[k])/total*100}%;background:${col}"></span>`).join("")}</div>
+    <div class="legend" style="color:var(--ink)">${parts.map(([k,col])=>`<span><span class="dot" style="background:${col}"></span>${k} <b class="num">${egp(c.sum("net",c.byMethod[k]))}</b> <span class="muted">${Math.round(c.sum("net",c.byMethod[k])/total*100)}%</span></span>`).join("")}</div>
+  </section>
+  <div class="two">
+    <section class="panel"><h2>Status this month</h2><div class="tablewrap"><table><thead><tr><th>Status</th><th class="r">People</th><th class="r">Net</th></tr></thead><tbody>
+      ${STATUSES.map(s=>{ const l=c.rows.filter(r=>r.status===s); return `<tr><td>${statusChip(s)}</td><td class="r num">${l.length}</td><td class="r num">${egp(c.sum("net",l))}</td></tr>`; }).join("")}</tbody></table></div></section>
+    <section class="panel"><h2>Month by month</h2><div class="tablewrap"><table><thead><tr><th>Month</th><th class="r">Employees</th><th class="r">Net salaries</th><th style="width:40%"></th></tr></thead><tbody>
+      ${hist.map(([id,n,cnt,cl])=>`<tr><td>${monthLabel(id)} ${cl?'<span class="chip good">Closed</span>':'<span class="chip warn">Open</span>'}</td><td class="r num">${cnt}</td><td class="r num">${egp(n)}</td><td><div class="bar" style="height:8px"><span style="width:${n/maxH*100}%;background:var(--accent)"></span></div></td></tr>`).join("")}</tbody></table></div></section>
+  </div>`;
+}
+
+/* ----- settings ----- */
+function settingsHTML(){
+  const s=D.settings;
+  const n=(k,step="1")=>`<input type="number" step="${step}" min="0" data-act="set" data-k="${k}" value="${esc(s[k])}" style="width:90px">`;
+  return `<div class="two"><section class="panel"><h2>Salary rules</h2><table><tbody>
+    <tr><td>Days in a salary month (day rate = basic ÷ this)</td><td>${n("daysBasis")}</td></tr>
+    <tr><td>Extra days paid for each public holiday worked</td><td>${n("holidayExtraDays","0.5")}</td></tr>
+    <tr><td>Pay for each other extra day worked (× day rate)</td><td>${n("extraDayMultiplier","0.25")}</td></tr>
+    <tr><td>Who collects the cash to hand out</td><td><input type="text" data-act="set" data-k="cashCollector" value="${esc(s.cashCollector)}" style="width:140px"></td></tr>
+  </tbody></table>
+  <p class="small muted">Example with these settings: a ${egp(20000)} basic is ${egp(20000/(num(s.daysBasis)||30))} a day. Working one public holiday adds ${egp(20000/(num(s.daysBasis)||30)*(num(s.holidayExtraDays)||0))}.</p></section>
+  <section class="panel"><h2>Your data</h2><p class="small">Everything is saved in this browser on this device. Download a backup after closing each month and keep it somewhere safe. Restore it to use the tool on another computer.</p>
+    <div class="row"><button data-act="backup">Download backup</button><button data-act="restore">Restore backup</button></div></section></div>`;
+}
+
+/* ---------- import from the existing salary sheet ---------- */
+async function importSheet(file){
+  if(!window.XLSX) return toast("The spreadsheet reader didn't load. Check the internet connection.");
+  try{
+    const wb=XLSX.read(await file.arrayBuffer(),{type:"array",cellDates:true});
+    let found=null;
+    for(const sn of wb.SheetNames){
+      const aoa=XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,raw:true,defval:""});
+      const h=aoa.findIndex(r=>r.some(v=>/basic/i.test(String(v))) && r.some(v=>/name/i.test(String(v))));
+      if(h>=0){ found={aoa,h}; break; }
+    }
+    if(!found) return toast("Couldn't find a header row with Basic and a name column in that file.");
+    const H=found.aoa[found.h].map(v=>norm(v));
+    const col=(...ws)=>{ for(const w of ws){ const i=H.findIndex(h=>h.includes(w)); if(i>=0) return i; } return -1; };
+    const cAr=col("arabic"), cEn=col("eng ref","english","eng"), cBasic=col("basic"), cMeth=col("payment method","method"), cBatch=col("batch");
+    if(cEn<0 && cAr<0) return toast("Couldn't find the name columns.");
+    let added=0, updated=0;
+    for(const r of found.aoa.slice(found.h+1)){
+      const en=String(cEn>=0?r[cEn]:"").trim(), ar=String(cAr>=0?r[cAr]:"").trim();
+      const nm=en||ar; if(!nm || /^total/i.test(nm)) continue;
+      const basic=num(r[cBasic]);
+      let meth=cMeth>=0? String(r[cMeth]).trim() : ""; meth=/cash/i.test(meth)?"Cash":/insta/i.test(meth)?"Instapay":meth?"Bank transfer":"";
+      const batchRaw=cBatch>=0? String(r[cBatch]).trim() : ""; const batch=/2/.test(batchRaw)?"Batch 2":/3/.test(batchRaw)?"Batch 3":batchRaw?"Batch 1":"";
+      const ex=D.employees.find(e=>norm(e.name)===norm(nm));
+      if(ex){ if(ar) ex.arabic=ar; if(basic!=null) ex.basic=basic; if(meth) ex.method=meth; if(batch) ex.batch=batch; updated++; }
+      else { D.employees.push({id:uid(),name:nm,arabic:ar,role:"",basic:basic??0,method:meth||"Bank transfer",batch:batch||"Batch 1",status:"active"}); added++; }
+    }
+    save(); render(); toast(`Imported: ${added} added, ${updated} updated`);
+  }catch(e){ console.warn(e); toast("That file couldn't be read. Save it as .xlsx and try again."); }
+}
+
+/* ---------- month lifecycle ---------- */
+function newMonth(){
+  const months=Object.keys(D.months).sort();
+  const sug=months.length? nextMonth(months[months.length-1]) : thisMonth();
+  const id=(prompt("Pay period to create (YYYY-MM):",sug)||"").trim(); if(!id) return;
+  if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(id)) return toast("Use the format YYYY-MM, for example 2026-10.");
+  if(!D.months[id]) D.months[id]={id,inputs:{},closed:false};
+  UI.month=id; UI.tab="payroll"; save(); render();
+}
+function closeMonth(){
+  const m=M(), c=compute(m);
+  const pend=c.rows.filter(r=>r.status!=="Paid").length;
+  if(!confirm(`Close ${monthLabel(m.id)}? Net salaries freeze at ${egp(c.totals.net)} EGP.${pend?`\n\n${pend} people are not marked Paid yet.`:""}`)) return;
+  const {sum,byMethod,...snap}=c; m.snapshot=JSON.parse(JSON.stringify(snap)); m.closed=true; m.closedAt=new Date().toISOString(); save(); render(); toast("Month closed. Download a backup now.");
+}
+function exportRows(c){
+  const H=["Full Arabic name (Bank)","Eng Ref Name","Basic","Days Deducted","Amount Deducted","Holidays Worked","Holiday Pay","Extra Days","Extra Pay","Bonus","Loan","Net Total","Batch","Status","Payment date","Payment Method","Marcus Notes"];
+  const rows=c.rows.map(r=>[r.arabic,r.name,Math.round(r.basic),r.dDed||"",Math.round(r.amtDed)||"",r.hol||"",Math.round(r.holPay)||"",r.xd||"",Math.round(r.xPay)||"",r.bonus||"",r.loan||"",r.net,r.batch,r.status,r.payDate,r.method,r.notes]);
+  const T=c.totals;
+  rows.push(["","TOTAL",Math.round(T.basic),T.dedDays||"",Math.round(T.ded)||"",T.holDays||"",Math.round(T.hol)||"","",Math.round(T.xp)||"",T.bonus||"",T.loan||"",Math.round(T.net),"","","","",""]);
+  return [H,...rows];
+}
+
+/* ---------- events ---------- */
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-act]"); if(!b||b.tagName==="SELECT"||b.tagName==="INPUT") return;
+  const a=b.dataset.act, m=M();
+  if(a==="tab"){ UI.tab=b.dataset.tab; try{localStorage.setItem("day1.salary.tab",UI.tab);}catch(_){} render(); }
+  else if(a==="newmonth") newMonth();
+  else if(a==="close") closeMonth();
+  else if(a==="reopen"){ if(confirm(`Reopen ${monthLabel(m.id)}? Figures become editable again.`)){ delete m.snapshot; m.closed=false; save(); render(); } }
+  else if(a==="backup"){ saveFile(`day1-salary-backup-${new Date().toISOString().slice(0,10)}.json`, new Blob([JSON.stringify(D,null,1)],{type:"application/json"})); toast("Backup downloaded. Keep it somewhere safe."); }
+  else if(a==="restore") $("#restoreFile").click();
+  else if(a==="import") $("#importFile").click();
+  else if(a==="resetdemo"){ if(confirm("Put the demo back to its starting figures?")){ try{localStorage.removeItem(KEY);}catch(_){} location.reload(); } }
+  else if(a==="addemp"){ D.employees.push({id:uid(),name:"New employee",arabic:"",role:"",basic:0,method:"Bank transfer",batch:"Batch 1",status:"active"}); save(); render(); }
+  else if(a==="delemp"){ const emp=D.employees[+b.dataset.i]; if(confirm(`Remove ${emp.name}? Closed months keep their figures. To keep history, set Status to Left instead.`)){ D.employees.splice(+b.dataset.i,1); save(); render(); } }
+  else if(a==="bulk"){ const bt=$("#bulkBatch").value, s=$("#bulkStatus").value, d=$("#bulkDate").value; const c=compute(m); let n=0;
+    for(const r of c.rows){ if(bt!=="All" && r.batch!==bt) continue; const o=m.inputs[r.id]||(m.inputs[r.id]={}); o.status=s; if(d) o.payDate=d; n++; }
+    save(); render(); toast(`${n} people set to ${s}`); }
+  else if(a==="xlsx"){ if(!window.XLSX) return toast("Excel export needs an internet connection."); const c=calc(); const wb=XLSX.utils.book_new(); const ws=XLSX.utils.aoa_to_sheet(exportRows(c)); ws["!cols"]=exportRows(c)[0].map(h=>({wch:Math.max(12,h.length+2)})); XLSX.utils.book_append_sheet(wb,ws,"Payroll");
+    const cash=[["Eng Ref Name","Full Arabic name","Batch","Net cash","Status"],...c.byMethod.Cash.map(r=>[r.name,r.arabic,r.batch,r.net,r.status]),["TOTAL to "+(D.settings.cashCollector||"Amira"),"","",Math.round(c.totals.cash),""]];
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(cash),"Cash"); XLSX.writeFile(wb,`Day1_${m.id}_Base_Salary.xlsx`); }
+  else if(a==="copy"){ const t=exportRows(calc()).map(r=>r.join("\t")).join("\n"); navigator.clipboard?.writeText(t).then(()=>toast("Copied. Paste into your sheet."),()=>toast("Copy blocked by the browser. Use Download Excel.")); }
+  else if(a==="copycash"){ const c=calc(); const t=[["Name","Arabic name","Net cash"],...c.byMethod.Cash.map(r=>[r.name,r.arabic,r.net]),["Total to "+(D.settings.cashCollector||"Amira"),"",Math.round(c.totals.cash)]].map(r=>r.join("\t")).join("\n"); navigator.clipboard?.writeText(t).then(()=>toast("Cash list copied"),()=>toast("Copy blocked by the browser.")); }
+  else if(a==="printcash") window.print();
+});
+document.addEventListener("input",e=>{ const el=e.target; if(el.dataset.act==="filter"){ UI.filter=el.value; const pos=el.selectionStart; render(); const f=$('input[data-act="filter"]'); if(f){ f.focus(); f.setSelectionRange(pos,pos); } } });
+document.addEventListener("change",e=>{
+  const el=e.target, a=el.dataset.act; if(!a) return; const m=M();
+  if(a==="month"){ UI.month=el.value; render(); }
+  else if(a==="inp"){ const o=m.inputs[el.dataset.id]||(m.inputs[el.dataset.id]={}); o[el.dataset.f]=el.value; save(); render(); }
+  else if(a==="emp"){ const emp=D.employees[+el.dataset.i]; let v=el.value; if(el.dataset.f==="basic") v=num(v)??0; if(el.dataset.f==="name"){ v=v.trim(); if(!v){ render(); return; } } emp[el.dataset.f]=v; save(); render(); }
+  else if(a==="set"){ D.settings[el.dataset.k]= el.type==="number"? (num(el.value)??DEFAULT_SETTINGS[el.dataset.k]) : el.value; save(); render(); }
+});
+$("#restoreFile").addEventListener("change",async e=>{
+  const f=e.target.files[0]; e.target.value=""; if(!f) return;
+  try{ const d=JSON.parse(await f.text()); if(d.app!=="day1-salary") throw 0;
+    if((D.employees.length||Object.keys(D.months).length) && !confirm("Replace everything in this browser with this backup?")) return;
+    const n=fix(d); D.settings=n.settings; D.employees=n.employees; D.months=n.months; UI.month=Object.keys(D.months).sort().pop()||null; save(); render(); toast(`Restored ${D.employees.length} employees`);
+  }catch(_){ toast("That file isn't a backup from the salary tool."); }
+});
+$("#importFile").addEventListener("change",e=>{ const f=e.target.files[0]; e.target.value=""; if(f) importSheet(f); });
+render();
+</script>
+</body>
+</html>
