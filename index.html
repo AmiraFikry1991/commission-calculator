@@ -290,7 +290,9 @@ function compute(settings, roster, month){
     const conv = inAll ? deals/inAll : (deals>0? null : null);
     const policies=(A.insurance.get(p.name)||[]).reduce((a,r)=>a+(r.policies!=null&&r.policies!==""? (num(r.policies)||0) : 1),0);
     const bonusRows=A.bonus.get(p.name)||[];
-    const bonus=bonusRows.reduce((a,r)=>a+(num(r.bonus)||0)+(num(r.oneoff)||0),0);
+    const bonusUpload=bonusRows.reduce((a,r)=>a+(num(r.bonus)||0)+(num(r.oneoff)||0),0);
+    const bonusManual=num(inp.bonusAdj)||0, bonusReason=(inp.bonusNote||"").trim();
+    const bonus=bonusUpload+bonusManual;
     const reviews=(A.trustpilot.get(p.name)||[]);
     const days=num(inp.days), owed=num(inp.owed)||0;
     const stipend = p.stipend ? Math.round(num(p.stipend) * (days!=null? days/wd : 1)) : 0;
@@ -369,6 +371,8 @@ function compute(settings, roster, month){
     row.commEGP=(row.commUSD+row.msUSD+owed)*rate;
     row.bonusTotal=insurance+stipend+bonus+reviewPay;
     row.total=Math.round((row.commEGP+row.bonusTotal)*100)/100;
+    row.bonusUpload=bonusUpload; row.bonusManual=bonusManual; row.bonusReason=bonusReason;
+    if(bonusManual) row.flags.push(["info",`Bonus ${egp(bonusManual)} EGP`+(bonusReason?`: ${bonusReason}`:"")]);
     row.deduct=num(inp.deduct)||0; row.deductNote=inp.deductNote||""; row.method=inp.method||"";
     row.final=Math.round((row.total-row.deduct)*100)/100;
     rows.push(row);
@@ -568,9 +572,15 @@ function resultsHTML(c, plan){
     </table></div>
     <p class="small muted">Select a row to see how each figure was worked out. Copy and download include everyone on both plans.</p>
   </section>
-  ${others.length?`<details class="panel"><summary>Transportation and bonuses only · ${others.length} people · ${egp(sumOf(others,"total"))} EGP</summary>
-    <div class="tablewrap"><table><thead><tr><th>Person</th><th class="r">Insurance</th><th class="r">Transportation</th><th class="r">Bonus</th><th class="r">Reviews</th><th class="r">Total EGP</th></tr></thead><tbody>
-    ${others.map(r=>`<tr><td><strong>${esc(r.name)}</strong><div class="muted small">${esc(r.role||"")}</div></td><td class="r num">${egp(r.insurance)}</td><td class="r num">${egp(r.stipend)}</td><td class="r num">${egp(r.bonus)}</td><td class="r num">${egp(r.reviews)}</td><td class="r num"><strong>${egp(r.total)}</strong></td></tr>`).join("")}
+  ${others.length?`<details class="panel" open><summary>Bonuses only · ${others.length} people · ${egp(sumOf(others,"total"))} EGP</summary>
+    <p class="small muted" style="margin:0">Type a bonus for this month and the reason. It is added on top of anything in the Bonus Incentives upload, shows on Bank Transfers and the Summary, and stays with this month only.${m.closed?" This month is closed, so bonuses are locked. Reopen it to change them.":""}</p>
+    <div class="tablewrap"><table><thead><tr><th>Person</th><th class="r">Insurance</th><th class="r">Transportation</th><th class="r">Bonus from upload</th><th class="r">Bonus this month EGP</th><th>Reason</th><th class="r">Reviews</th><th class="r">Total EGP</th></tr></thead><tbody>
+    ${others.map(r=>{ const inp=m.inputs?.[r.name]||{}; const ro=!S.canEdit||m.closed; return `<tr><td><strong>${esc(r.name)}</strong><div class="muted small">${esc(r.role||"")}</div></td><td class="r num">${egp(r.insurance)}</td><td class="r num">${egp(r.stipend)}</td>
+      <td class="r num">${r.bonusUpload?egp(r.bonusUpload):'<span class="muted">0</span>'}${r.bonusNotes?`<div class="muted small">${esc(r.bonusNotes)}</div>`:""}</td>
+      <td class="r"><input type="number" step="1" min="0" class="w-num" data-inp="bonusAdj" data-who="${esc(r.name)}" value="${esc(inp.bonusAdj??"")}" placeholder="0" ${ro?"disabled":""} aria-label="Bonus this month for ${esc(r.name)}"></td>
+      <td><input type="text" class="w-alias" data-inp="bonusNote" data-who="${esc(r.name)}" value="${esc(inp.bonusNote||"")}" placeholder="e.g. covered weekend shifts" ${ro?"disabled":""} aria-label="Bonus reason for ${esc(r.name)}"></td>
+      <td class="r num">${egp(r.reviews)}</td><td class="r num"><strong>${egp(r.total)}</strong></td></tr>`; }).join("")}
+    <tr class="total"><td>Total</td><td class="r num">${egp(sumOf(others,"insurance"))}</td><td class="r num">${egp(sumOf(others,"stipend"))}</td><td class="r num">${egp(sumOf(others,"bonusUpload"))}</td><td class="r num">${egp(sumOf(others,"bonusManual"))}</td><td></td><td class="r num">${egp(sumOf(others,"reviews"))}</td><td class="r num">${egp(sumOf(others,"total"))}</td></tr>
     </tbody></table></div></details>`:""}`;
 }
 function workingHTML(r,c){
@@ -1002,7 +1012,7 @@ document.addEventListener("change", async e=>{
   if(t.id==="mpSheet"){ const mp=S.pending; const {headers,data}=sheetRows(mp.wb,t.value); Object.assign(mp,{sheet:t.value,headers,data,map:guessMap(SOURCES.find(s=>s.key===mp.key),headers)}); render(); return; }
   if(t.dataset.map){ S.pending.map[t.dataset.map]= t.value===""? null : +t.value; return; }
   if(t.dataset.linksel){ if(!t.value) return; const p=S.roster.people.find(x=>x.name===t.value); const al=(p.aliases||"").split(",").map(s=>s.trim()).filter(Boolean); al.push(t.dataset.linksel); p.aliases=al.join(", "); if(await saveRoster()) toast(`${t.dataset.linksel} now counts for ${p.name}`); return; }
-  if(t.dataset.inp){ const who=t.dataset.who, k=t.dataset.inp; const v = ["note","deductNote","method"].includes(k) ? t.value : num(t.value); await saveMonth({inputs:{[who]:{[k]:v}}}); return; }
+  if(t.dataset.inp){ const who=t.dataset.who, k=t.dataset.inp; const v = ["note","deductNote","method","bonusNote"].includes(k) ? t.value : num(t.value); await saveMonth({inputs:{[who]:{[k]:v}}}); return; }
   if(t.dataset.p!=null){ const p=S.roster.people[+t.dataset.p], f=t.dataset.f;
     let v = t.type==="checkbox" ? t.checked : t.value;
     if(["stipend","depositsToDate"].includes(f)) v=num(v); if(f==="override") v= t.value===""? null : num(v);
